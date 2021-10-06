@@ -1,7 +1,7 @@
 /**
  * @title Color TOJ Negation 3
  * @description Experiment on negation in TVA instructions (dual-colored version)
- * @version 2.0.0
+ * @version 2.1.0
  *
  * @imageDir images/common
  * @audioDir audio/color-toj-negation,audio/feedback
@@ -29,7 +29,8 @@ import { setAbsolutePosition } from "./util/positioning";
 import { LabColor } from "./util/colors";
 import { Quadrant } from "./util/Quadrant";
 import { addIntroduction } from "./util/introduction";
-
+import {partialRandomizePartialRandomizeSequencewise} from './util/customRandomizer'
+import {MD5} from 'crypto-js'
 const soaChoices = [-6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6].map((x) => x * 16.667);
 
 class TojTarget {
@@ -211,7 +212,8 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     soa: soaChoices,
   };
   const repetitions = 1;
-  let trials = jsPsych.randomization.factorial(factors, repetitions);
+  let trials1 = partialRandomizePartialRandomizeSequencewise(factors, repetitions,[1,2,5], "isInstructionNegated",[true,false])
+  let trials2 = partialRandomizePartialRandomizeSequencewise(factors, repetitions,[1,3,6], "isInstructionNegated",[true,false])
 
   const touchAdapterLeft = new TouchAdapter(
     jsPsych.pluginAPI.convertKeyCharacterToKeyCode(leftKey)
@@ -318,7 +320,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
   timeline.push(
     {
       timeline: [toj],
-      timeline_variables: trials.slice(0, globalProps.isFirstParticipation ? 30 : 10),
+      timeline_variables: trials1.slice(0, globalProps.isFirstParticipation ? 30 : 10),
       play_feedback: true,
       randomize_order: true,
     },
@@ -350,7 +352,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
   });
 
   // Generator function to create the main experiment timeline
-  const timelineGenerator = function* (blockCount) {
+  const timelineGenerator1 = function* (blockCount) {
     let currentBlock = 1;
     while (currentBlock <= blockCount) {
       yield {
@@ -358,8 +360,25 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
         // Alternate between first half and second half of trials array
         timeline_variables:
           currentBlock % 2 == 1
-            ? trials.slice(0, trials.length / 2) // first half
-            : trials.slice(trials.length / 2), // second half
+            ? trials1.slice(0, trials1.length / 2) // first half
+            : trials1.slice(trials1.length / 2), // second half
+        randomize_order: true,
+      };
+      yield makeBlockFinishedScreenTrial(currentBlock, blockCount);
+      currentBlock += 1;
+    }
+  };
+
+  const timelineGenerator2 = function* (blockCount) {
+    let currentBlock = 1;
+    while (currentBlock <= blockCount) {
+      yield {
+        timeline: [toj],
+        // Alternate between first half and second half of trials array
+        timeline_variables:
+          currentBlock % 2 == 1
+            ? trials2.slice(0, trials2.length / 2) // first half
+            : trials2.slice(trials2.length / 2), // second half
         randomize_order: true,
       };
       yield makeBlockFinishedScreenTrial(currentBlock, blockCount);
@@ -369,8 +388,28 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
 
   // Main experiment
   timeline.push({
-    timeline: Array.from(timelineGenerator(10)),
+    conditional_function: () => {
+      const participantID = globalProps.participantCode
+      const participantIDHash = MD5(participantID).toString();
+      const conditionToSelect = Number.parseInt(
+                            Array.from(participantIDHash)
+                            .map((v,i) => `${v.charCodeAt(0)}`.padStart(2, '0')).join("")
+                          ) % 2 === 0
+      return conditionToSelect
+    },
+    timeline: Array.from(timelineGenerator1(10)),
   });
-
+  timeline.push({
+    conditional_function: () => {
+      const participantID = globalProps.participantCode
+      const participantIDHash = MD5(participantID).toString();
+      const conditionToSelect = Number.parseInt(
+                            Array.from(participantIDHash)
+                            .map((v,i) => `${v.charCodeAt(0)}`.padStart(2, '0')).join("")
+                          ) % 2 === 1
+      return conditionToSelect
+    },
+    timeline: Array.from(timelineGenerator2(10)),
+  });
   return timeline;
 }
