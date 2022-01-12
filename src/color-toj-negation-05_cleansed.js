@@ -24,12 +24,11 @@ import "../styles/main.scss";
 import "jspsych/plugins/jspsych-html-keyboard-response";
 import "jspsych/plugins/jspsych-image-keyboard-response";
 import "jspsych/plugins/jspsych-call-function";
-import "jspsych/plugins/jspsych-preload";
+//import "jspsych/plugins/jspsych-preload";
 
 import { TojPlugin } from "./plugins/jspsych-toj";
 import tojNegationPlugin from "./plugins/jspsych-toj-negation-dual";
 import "./plugins/jspsych-toj-negation-dual";
-import { generateAlternatingSequences, copy } from "./util/trialGenerator";
 
 import delay from "delay";
 import { sample } from "lodash";
@@ -43,7 +42,8 @@ import { LabColor } from "./util/colors";
 import { Quadrant } from "./util/Quadrant";
 import { addIntroduction } from "./util/introduction";
 
-const soaChoices = [-6, -3, -1, 0, 1, 3, 6].map((x) => (x * 16.6667).toFixed(3));
+// const soaChoices = [-6, -3, -1, 0, 1, 3, 6].map((x) => (x * 16.6667).toFixed(3));
+const soaChoices = [-3, 0, 3].map((x) => (x * 16.6667).toFixed(3));
 const soaChoicesTutorial = [-6, -3, 3, 6].map((x) => (x * 16.6667).toFixed(3));
 
 const debugmode = false;
@@ -278,13 +278,13 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
   };  
 
 
-  const repetitions = 1;
+  const repetitions = 2;
  
 
   let trialData = jsPsych.randomization.factorial(factors, repetitions);
 
   //let trials = trialData.trials;
-  let blockCount = trialData.blockCount;
+  // let blockCount = trialData.blockCount;
 
   const touchAdapterLeft = new TouchAdapter(
     jsPsych.pluginAPI.convertKeyCharacterToKeyCode(leftKey)
@@ -460,7 +460,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     cursor_off,
     {
       timeline: [cross, face, toj],
-      timeline_variables: trialDataTutorial,//.slice(0, 5),//trialsTutorial,
+      timeline_variables: trialDataTutorial.slice(0, 5),//trialsTutorial,
       play_feedback: true,
     },
     cursor_on,
@@ -468,8 +468,8 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
       type: "html-keyboard-response",
       choices: [" "],
       stimulus: "<p>You finished the tutorial.</p><p>Press SPACE key or touch to continue.</p>",
-      on_start: bindSpaceTouchAdapterToWindow,
-      on_finish: unbindSpaceTouchAdapterFromWindow,
+      /*on_start: bindSpaceTouchAdapterToWindow,
+      on_finish: unbindSpaceTouchAdapterFromWindow,*/
     }
   );
   
@@ -497,56 +497,32 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
         return "<p>This part of the experiment is finished. Press any key or touch to submit the results!</p>";
       }
     },
-    on_start: bindSpaceTouchAdapterToWindow,
-    on_finish: unbindSpaceTouchAdapterFromWindow,
+    /*on_start: bindSpaceTouchAdapterToWindow,
+    on_finish: unbindSpaceTouchAdapterFromWindow,*/
   });
 
-  let timelineVariablesBlock = [];
   let curBlockIndex = 0;
-
-  if (debugmode) {
-    trials = trials.slice(0, 16); // only relevant if the original factors are used, resulting in a very large cartesian product
-    debugPrint(trials, factors);
-  }
 
   timeline.push(cursor_off);
 
+  // calculate how much trials are needed to run all combinations
+  const singleRunTrialCount =  Object.getOwnPropertyNames(factors).map((factorName) => factors[factorName].length).reduce((acc,value) => (acc*value),1)
+  const blockLengthLimit = singleRunTrialCount
+
   for (let i = 0; i < trialData.length; i++) {
     let trial = trialData[i];
-    timelineVariablesBlock.push(trial);
 
-    if (
-      (i < trialData.length - 1 && curBlockIndex < trialData[i + 1]["blockIndex"]) ||
-      i === trialData.length - 1
-    ) {
-      /**
-       * if (rather: when) block is full or the last trial in the list is reached:
-       * - push trial collection as a block to timeline
-       * - empty trial list
-       * - set new current block index
-       * - push block end screen to timeline
-       */
+    const experimentTojTimeline = {
+      timeline: [toj],
+      timeline_variables: [trial]
+    };
+    timeline.push(experimentTojTimeline);
 
-      let timelineTrialsBlock = {
-        timeline: [cross, face, toj],
-        timeline_variables: timelineVariablesBlock.slice(0, 6),
-      };
-      timeline.push(timelineTrialsBlock);
-      timelineVariablesBlock = [];
-      if (i !== trialData.length - 1) {
-        curBlockIndex = trialData[i + 1]["blockIndex"];
-      } else {
-        /**
-         * last full block might not be finished by the time the experiment ends, thus incrementing the block index manually. Theoretically getting the block index via trials[i + 1]["blockIndex"] - as done in the if condition - is not necessary and incrementing the index should be sufficient.
-         */
-        curBlockIndex++;
-      }
-
+    // if last trial in block
+    if(i % blockLengthLimit === blockLengthLimit - 1){
       timeline.push(cursor_on);
-      if (debugmode) {
-        console.log("blockCount=" + blockCount);
-      }
-      timeline.push(makeBlockFinishedScreenTrial(curBlockIndex, blockCount));
+      timeline.push(makeBlockFinishedScreenTrial(curBlockIndex + 1, Math.ceil(singleRunTrialCount*repetitions/blockLengthLimit)));
+      curBlockIndex ++
       timeline.push(cursor_off);
     }
   }
@@ -557,6 +533,6 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     type: "fullscreen",
     fullscreen_mode: false,
   });
-
+  console.log(timeline)
   return timeline;
 }
