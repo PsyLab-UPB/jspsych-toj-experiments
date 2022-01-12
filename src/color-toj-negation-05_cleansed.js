@@ -302,6 +302,8 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     soa: jsPsych.timelineVariable("soa"),
     probe_key: () => (jsPsych.timelineVariable("probeLeft", true) ? leftKey : rightKey),
     reference_key: () => (jsPsych.timelineVariable("probeLeft", true) ? rightKey : leftKey),
+    fixation_mark_html: `<img class='toj-fixation-mark absolute-position' src='media/images/common/fixmark.png'></img>
+    <img class='toj-fixation-mark absolute-position' src='media/images/common/tw.png' style='width:80px; opacity:0.5'></img>`, 
     instruction_negated: jsPsych.timelineVariable("isInstructionNegated"),
     instruction_voice: () => sample(["m", "f"]),
     trust: jsPsych.timelineVariable("trust"),
@@ -449,10 +451,10 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
   };
  */
   const face = {
-    type: "image-keyboard-response",
-    stimulus: jsPsych.timelineVariable("trust"),
-    stimulus_height: 300,
-    trial_duration: 700,
+    type: "html-keyboard-response",
+    stimulus:  "<img class='toj-fixation-mark absolute-position' src='media/images/common/tw.png' style='width:200px; opacity:0.5'></img>", //jsPsych.timelineVariable("trust"),
+   // stimulus_height: 300,
+    trial_duration: 200,
   };
 
   //timeline.push(preload);
@@ -498,7 +500,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
       }
     },
     /*on_start: bindSpaceTouchAdapterToWindow,
-    on_finish: unbindSpaceTouchAdapterFromWindow,*/
+    on_finish: unbindSpaceTouchAdapterFromWindow,*/ //für touch wichtig
   });
 
   let curBlockIndex = 0;
@@ -513,7 +515,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     let trial = trialData[i];
 
     const experimentTojTimeline = {
-      timeline: [toj],
+      timeline: [cross, face, toj],
       timeline_variables: [trial]
     };
     timeline.push(experimentTojTimeline);
