@@ -10,7 +10,7 @@
  * - Instructions to turn on sound and sound test (still to be done)
  * - Experiment after a pause is continued by pressing the space bar, not by pressing any key
  * @version 1.1.0
- * @imageDir images/common
+ * @imageDir images/common,images/distrust
  * @audioDir audio/color-toj-negation,audio/feedback
  * @miscDir misc
  */
@@ -24,7 +24,6 @@ import "../styles/main.scss";
 import "jspsych/plugins/jspsych-html-keyboard-response";
 import "jspsych/plugins/jspsych-image-keyboard-response";
 import "jspsych/plugins/jspsych-call-function";
-//import "jspsych/plugins/jspsych-preload";
 
 import { TojPlugin } from "./plugins/jspsych-toj";
 import tojNegationPlugin from "./plugins/jspsych-toj-negation-dual";
@@ -166,11 +165,64 @@ const leftKey = "q",
   rightKey = "p";
 
 export function createTimeline() {
+
+  const images = ["nexus2_10_tw_-3.00.bmp",
+    "nexus2_10_tw_3.00.bmp",
+    "nexus2_11_tw_-3.00.bmp",
+    "nexus2_11_tw_3.00.bmp",
+    "nexus2_12_tw_-3.00.bmp",
+    "nexus2_12_tw_3.00.bmp",
+    "nexus2_13_tw_-3.00.bmp",
+    "nexus2_13_tw_3.00.bmp",
+    "nexus2_14_tw_-3.00.bmp",
+    "nexus2_14_tw_3.00.bmp",
+    "nexus2_15_tw_-3.00.bmp",
+    "nexus2_15_tw_3.00.bmp",
+    "nexus2_16_tw_-3.00.bmp",
+    "nexus2_16_tw_3.00.bmp",
+    "nexus2_17_tw_-3.00.bmp",
+    "nexus2_17_tw_3.00.bmp",
+    "nexus2_18_tw_-3.00.bmp",
+    "nexus2_18_tw_3.00.bmp",
+    "nexus2_19_tw_-3.00.bmp",
+    "nexus2_19_tw_3.00.bmp",
+    "nexus2_1_tw_-3.00.bmp",
+    "nexus2_1_tw_3.00.bmp",
+    "nexus2_20_tw_-3.00.bmp",
+    "nexus2_20_tw_3.00.bmp",
+    "nexus2_21_tw_-3.00.bmp",
+    "nexus2_21_tw_3.00.bmp",
+    "nexus2_22_tw_-3.00.bmp",
+    "nexus2_22_tw_3.00.bmp",
+    "nexus2_23_tw_-3.00.bmp",
+    "nexus2_23_tw_3.00.bmp",
+    "nexus2_24_tw_-3.00.bmp",
+    "nexus2_24_tw_3.00.bmp",
+    "nexus2_25_tw_-3.00.bmp",
+    "nexus2_25_tw_3.00.bmp",
+    "nexus2_2_tw_-3.00.bmp",
+    "nexus2_2_tw_3.00.bmp",
+    "nexus2_3_tw_-3.00.bmp",
+    "nexus2_3_tw_3.00.bmp",
+    "nexus2_4_tw_-3.00.bmp",
+    "nexus2_4_tw_3.00.bmp",
+    "nexus2_5_tw_-3.00.bmp",
+    "nexus2_5_tw_3.00.bmp",
+    "nexus2_6_tw_-3.00.bmp",
+    "nexus2_6_tw_3.00.bmp",
+    "nexus2_7_tw_-3.00.bmp",
+    "nexus2_7_tw_3.00.bmp",
+    "nexus2_8_tw_-3.00.bmp",
+    "nexus2_8_tw_3.00.bmp",
+    "nexus2_9_tw_-3.00.bmp",
+    "nexus2_9_tw_3.00.bmp"
+    ]
+
   let timeline = [];
 
-  jsPsych.pluginAPI.preloadImages([
-    "media/images/common/tw.png",
-    "media/images/common/ntw.png"]);
+  jsPsych.pluginAPI.preloadImages(
+    images.map((image) => `media/images/distrust/${image}`)
+  );
 
   const touchAdapterSpace = new TouchAdapter(
     jsPsych.pluginAPI.convertKeyCharacterToKeyCode("space")
@@ -224,56 +276,16 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     },
   });
 
-  /** 
-  // Generate trials
   const factors = {
     isInstructionNegated: [true, false],
     probeLeft: [true, false],
-    soa: soaChoices,
-    sequenceLength: [1, 2, 5],
-  };
-  const factorsTutorial = {
-    isInstructionNegated: [true, false],
-    soa: soaChoicesTutorial,
-    sequenceLength: [1, 2, 5],
-  };
-  const factorsDebug = {
-    isInstructionNegated: [true, false],
-    soa: [-6, 6].map((x) => (x * 16.6667).toFixed(3)),
-    sequenceLength: [1, 2],
-  };
-  const repetitions = 1;
-  const blocksize = 40;
-  const probeLeftIsFactor = true; // if true, it adds an implicit repetition
-  const alwaysStayUnderBlockSize = false;
- 
- 
-  let trialData = generateAlternatingSequences(
-    factors,
-    repetitions,
-    probeLeftIsFactor,
-    blocksize,
-    alwaysStayUnderBlockSize
-  );
-
-  if (debugmode) {
-    trialData = generateAlternatingSequences(factorsDebug, 1, false, 1, false);
-  } */
-
-  const factors = {
-    isInstructionNegated: [true, false],
-    probeLeft: [true, false],
-    trust: [
-      "media/images/common/tw.png",
-      "media/images/common/ntw.png"], //,      "media/images/common/tw1.png",       "media/images/common/ntw1.png"],
+    trust: ["trust","distrust"],
     soa: soaChoices,
   };
   const factorsTutorial = {
     isInstructionNegated: [true, false],
     probeLeft: [true, false],
-    trust: [
-      "media/images/common/tw.png",
-      "media/images/common/ntw.png"],//,      "media/images/common/tw1.png",      "media/images/common/ntw1.png"],
+    trust: ["trust","distrust"],
     soa: soaChoicesTutorial,
   };  
 
@@ -296,14 +308,14 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
   let scaler; // Will store the Scaler object for the TOJ plugin
 
   // Create TOJ plugin trial object
-  const toj = {
+  const toj = (image) => ({
     type: "toj-negation-dual",
     modification_function: (element) => TojPlugin.flashElement(element, "toj-flash", 30),
     soa: jsPsych.timelineVariable("soa"),
     probe_key: () => (jsPsych.timelineVariable("probeLeft", true) ? leftKey : rightKey),
     reference_key: () => (jsPsych.timelineVariable("probeLeft", true) ? rightKey : leftKey),
     fixation_mark_html: `<img class='toj-fixation-mark absolute-position' src='media/images/common/fixmark.png'></img>
-    <img class='toj-fixation-mark absolute-position' src='media/images/common/tw.png' style='width:80px; opacity:0.5'></img>`, 
+    <img class='toj-fixation-mark absolute-position' src='media/images/distrust/${image}' style='width:80px; opacity:0.5'></img>`, 
     instruction_negated: jsPsych.timelineVariable("isInstructionNegated"),
     instruction_voice: () => sample(["m", "f"]),
     trust: jsPsych.timelineVariable("trust"),
@@ -402,7 +414,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
         }
       }
     },
-  };
+  });
 
   
 
@@ -441,31 +453,37 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     trial_duration: 1000,
   };
 
-  /**   const face = {
+  const face = (filePath) => ({
     type: "html-keyboard-response",
-    stimulus: "<img src='"+jsPsych.timelineVariable("trust")+"'>)",
-    choices: "NO_KEYS",
-
-   // stimulus_height: 300,
-    trial_duration: 700,
-  };
- */
-  const face = {
-    type: "html-keyboard-response",
-    stimulus:  "<img class='toj-fixation-mark absolute-position' src='media/images/common/tw.png' style='width:200px; opacity:0.5'></img>", //jsPsych.timelineVariable("trust"),
-   // stimulus_height: 300,
+    stimulus:  `<img class='toj-fixation-mark absolute-position' src='media/images/distrust/${filePath}' style='width:200px; opacity:0.5'></img>`,
     trial_duration: 200,
-  };
+  });
 
-  //timeline.push(preload);
+  const trustImages = images.filter((image) => !image.includes("-3.0"))
+  const distrustImages = images.filter((image) => image.includes("-3.0"))
+  const lengthOfTutorial = 10
+
+  // Creation of Tutorial
+  for (let i = 0; i < lengthOfTutorial; i++) {
+    let trial = trialData[i];
+
+    let randomImage = ""
+
+    if(trial['trust'] === 'trust'){
+      randomImage = trustImages[randomInt(0,trustImages.length-1)]
+    } 
+    else if(trial['trust'] === 'distrust'){
+      randomImage = distrustImages[randomInt(0,distrustImages.length-1)]
+    }
+
+    const experimentTojTimeline = {
+      timeline: [cross, face(randomImage), toj(randomImage)],
+      timeline_variables: [trial]
+    };
+
+    timeline.push(experimentTojTimeline);
+  }
   timeline.push(
-    cursor_off,
-    {
-      timeline: [cross, face, toj],
-      timeline_variables: trialDataTutorial.slice(0, 5),//trialsTutorial,
-      play_feedback: true,
-    },
-    cursor_on,
     {
       type: "html-keyboard-response",
       choices: [" "],
@@ -510,12 +528,22 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
   // calculate how much trials are needed to run all combinations
   const singleRunTrialCount =  Object.getOwnPropertyNames(factors).map((factorName) => factors[factorName].length).reduce((acc,value) => (acc*value),1)
   const blockLengthLimit = singleRunTrialCount
-
+  // shuffle array to get random order of trials
+  trialData = jsPsych.randomization.repeat(trialData,1)
   for (let i = 0; i < trialData.length; i++) {
     let trial = trialData[i];
 
+    let randomImage = ""
+
+    if(trial['trust'] === 'trust'){
+      randomImage = trustImages[randomInt(0,trustImages.length-1)]
+    } 
+    else if(trial['trust'] === 'distrust'){
+      randomImage = distrustImages[randomInt(0,distrustImages.length-1)]
+    }
+
     const experimentTojTimeline = {
-      timeline: [cross, face, toj],
+      timeline: [cross, face(randomImage), toj(randomImage)],
       timeline_variables: [trial]
     };
     timeline.push(experimentTojTimeline);
@@ -535,6 +563,6 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     type: "fullscreen",
     fullscreen_mode: false,
   });
-  console.log(timeline)
+
   return timeline;
 }
