@@ -23,7 +23,7 @@ import "../styles/main.scss";
 // jsPsych plugins
 import "jspsych/plugins/jspsych-html-keyboard-response";
 import "jspsych/plugins/jspsych-call-function";
-import { TojPlugin } from "./plugins/jspsych-toj-negation-which_first";
+import { TojPluginWhichFirst } from "./plugins/jspsych-toj-negation-which_first";
 import tojPlugin from "./plugins/jspsych-toj-negation-which_first";
 //old: removed imports that are not needed in neg6
 //import tojNegationPlugin from "./plugins/jspsych-toj-negation-dual";
@@ -304,20 +304,22 @@ Falls Sie für üblich eine Brille tragen, setzen Sie diese bitte für das Exper
   // Create TOJ plugin trial object
   const toj = {
     type: "toj-which_first",
-    modification_function: (element) => TojPlugin.flashElement(element, "toj-flash", 30),
+    modification_function: (element) => TojPluginWhichFirst.flashElement(element, "toj-flash", 30),
     soa: jsPsych.timelineVariable("soa"),
     //diff to neg02: changed probe_key and reference_key lines to fit neg05 implementation
     first_key: () => leftKey,
     second_key: () => rightKey,
+    probe_key: () => "undefined",
+    reference_key: () => "undefined",
     instruction_negated: jsPsych.timelineVariable("isInstructionNegated"),
     greenCalled: jsPsych.timelineVariable("GreenFact"),
     instruction_voice: () => sample(["m", "f"]),
     on_start: async (trial) => {
-      console.log(trial.soa)
-      console.log(trial.greenCalled ? "green called": "red called")
-      console.log((trial.greenCalled !== trial.instruction_negated) ? "green meant": "red meant")
-      console.log(trial.instruction_negated ? "instruction negated": "instruction not negated")
-      console.log((trial.soa <= 0  === (trial.greenCalled != trial.instruction_negated ))? leftKey : rightKey)
+      // console.log(trial.soa)
+      // console.log(trial.greenCalled ? "green called": "red called")
+      // console.log((trial.greenCalled !== trial.instruction_negated) ? "green meant": "red meant")
+      // console.log(trial.instruction_negated ? "instruction negated": "instruction not negated")
+      // console.log((trial.soa <= 0  === (trial.greenCalled != trial.instruction_negated ))? leftKey : rightKey)
       const probeLeft = jsPsych.timelineVariable("probeLeft", true);
       const cond = conditionGenerator.generateCondition(probeLeft);
       
