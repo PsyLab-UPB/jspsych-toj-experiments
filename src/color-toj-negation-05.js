@@ -270,12 +270,12 @@
      instruction_voice: () => sample(["m", "f"]),
      on_start: (trial) => {
        const probeLeft = jsPsych.timelineVariable("probeLeft", true);
-       const cond = conditionGenerator.generateCondition(probeLeft);
+       const condition = conditionGenerator.generateCondition(probeLeft);
  
        // Log probeLeft and condition
        trial.data = {
          probeLeft,
-         condition: cond,
+         condition,
          sequenceLength: jsPsych.timelineVariable("sequenceLength", true),
          rank: jsPsych.timelineVariable("rank", true),
          blockIndex: jsPsych.timelineVariable("blockIndex", true),
@@ -283,18 +283,18 @@
          trialIndexInThisBlock: jsPsych.timelineVariable("trialIndexInBlock", true),
        };
  
-       trial.fixation_time = cond.targetPairs[0].fixationTime;
-       trial.distractor_fixation_time = cond.targetPairs[1].fixationTime;
+       trial.fixation_time = condition.targetPairs[0].fixationTime;
+       trial.distractor_fixation_time = condition.targetPairs[1].fixationTime;
        trial.instruction_language = globalProps.instructionLanguage;
  
        
  
        // Set instruction color
        trial.instruction_filename =
-         cond.targetPairs[trial.instruction_negated ? 1 : 0].primary.color.toName();
+       condition.targetPairs[trial.instruction_negated ? 1 : 0].primary.color.toName();
  
        // Set distractor SOA
-       trial.distractor_soa = cond.distractorSOA;
+       trial.distractor_soa = condition.distractorSOA;
      },
      on_load: async () => {
       const trial = jsPsych.getCurrentTrial();
