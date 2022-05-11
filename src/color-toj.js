@@ -68,34 +68,34 @@ class ConditionGenerator {
   }
 
   generateCondition(probeLeft, salient) {
-    const cond = {};
+    const condition = {};
 
     const [colorLeft, colorRight] = shuffle(this._colors);
     if (probeLeft) {
-      cond.colorProbe = salient ? colorRight : colorLeft;
-      cond.colorProbeGrid = colorLeft;
-      cond.colorReference = colorRight;
+      condition.colorProbe = salient ? colorRight : colorLeft;
+      condition.colorProbeGrid = colorLeft;
+      condition.colorReference = colorRight;
     } else {
-      cond.colorProbe = salient ? colorLeft : colorRight;
-      cond.colorProbeGrid = colorRight;
-      cond.colorReference = colorLeft;
+      condition.colorProbe = salient ? colorLeft : colorRight;
+      condition.colorProbeGrid = colorRight;
+      condition.colorReference = colorLeft;
     }
 
-    cond.rotationProbe = this.generateOrientation();
-    cond.rotationReference = this.mirrorOrientation(cond.rotationProbe);
+    condition.rotationProbe = this.generateOrientation();
+    condition.rotationReference = this.mirrorOrientation(condition.rotationProbe);
 
     const posLeft = this.generatePosition("left", [3, 5]);
     const posRight = this.generatePosition("right", [2, 4]);
     if (probeLeft) {
-      cond.posProbe = posLeft;
-      cond.posRef = posRight;
+      condition.posProbe = posLeft;
+      condition.posRef = posRight;
     } else {
-      cond.posProbe = posRight;
-      cond.posRef = posLeft;
+      condition.posProbe = posRight;
+      condition.posRef = posLeft;
     }
 
-    cond.fixationTime = randomInt(30, 75) * 10;
-    return cond;
+    condition.fixationTime = randomInt(30, 75) * 10;
+    return condition;
   }
 }
 
@@ -172,20 +172,20 @@ export async function run() {
       const probeLeft = jsPsych.timelineVariable("probeLeft");
       const salient = jsPsych.timelineVariable("salient");
 
-      const cond = conditionGenerator.generateCondition(probeLeft, salient);
+      const condition = conditionGenerator.generateCondition(probeLeft, salient);
 
       // Log probeLeft, salient and condition
       trial.data = {
         probeLeft,
         salient,
-        condition: cond,
+        condition,
       };
 
-      trial.fixation_time = cond.fixationTime;
+      trial.fixation_time = condition.fixationTime;
     },
     on_load: () => {
       const trial = jsPsych.getCurrentTrial();
-      const { condition: cond, probeLeft } = trial.data;
+      const { condition, probeLeft } = trial.data;
 
       const plugin = TojPlugin.current;
 
@@ -196,23 +196,23 @@ export async function run() {
 
       const [probeGrid, probeTarget] = createBarStimulusGrid(
         gridSize,
-        cond.posProbe,
-        cond.colorProbe,
-        cond.colorProbeGrid,
+        condition.posProbe,
+        condition.colorProbe,
+        condition.colorProbeGrid,
         targetScaleFactor,
         distractorScaleFactor,
         distractorScaleFactorSD,
-        cond.rotationProbe
+        condition.rotationProbe
       );
       const [referenceGrid, referenceTarget] = createBarStimulusGrid(
         gridSize,
-        cond.posRef,
-        cond.colorReference,
-        cond.colorReference,
+        condition.posRef,
+        condition.colorReference,
+        condition.colorReference,
         targetScaleFactor,
         distractorScaleFactor,
         distractorScaleFactorSD,
-        cond.rotationReference
+        condition.rotationReference
       );
 
       trial.probe_element = probeTarget;
