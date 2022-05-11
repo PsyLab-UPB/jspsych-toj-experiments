@@ -7,7 +7,7 @@
  * - Instruction phase: discouraged use of large screens
  * - introduction.js: Added prompt asking whether this will be a participant's last session. If so: After finishing the last session: Ask participants about their guess about the hypothesis of this study
  * - Depending on the participant code (that is generated randomly initially), half participants get assigned to a version where the answer keys Q (for "first") and P (for "second") are switched. The same participant code results in the same answer key mapping.
- * @version 2.0.1
+ * @version 2.0.1-test
  * @imageDir images/common
  * @audioDir audio/color-toj-negation,audio/feedback
  * @miscDir misc
@@ -406,6 +406,16 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
       document.body.style.cursor = "auto";
     },
   };
+
+  const saveToJatos = {
+    type: "call-function",
+    func: function () {
+      if(typeof jatos !== "undefined"){
+        jatos.submitResultData(jsPsych.data.get().json());
+      }
+    },
+  };
+
   
 
   // Tutorial
@@ -627,6 +637,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
       if (debugmode) {
         console.log("blockCount=" + blockCount);
       }
+      timeline.push(saveToJatos)
       timeline.push(makeBlockFinishedScreenTrial(curBlockIndex, blockCount));
       timeline.push(cursor_off);
     }
