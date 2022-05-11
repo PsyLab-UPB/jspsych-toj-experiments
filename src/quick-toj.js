@@ -1,7 +1,7 @@
 /**
  * @title Quick TOJ
  * @description A quick, browser-based TOJ experiment with orientation
- * @version 1.0.0
+ * @version 2.0.0
  *
  * @imageDir images/common,images/quick-toj
  */
@@ -63,33 +63,33 @@ class ConditionGenerator {
   }
 
   generateCondition(probeLeft, salient) {
-    let cond = {};
-    cond.oriLeft = this.generateOrientation("left");
-    cond.oriRight = this.mirrorOrientation(cond.oriLeft);
+    let condition = {};
+    condition.oriLeft = this.generateOrientation("left");
+    condition.oriRight = this.mirrorOrientation(condition.oriLeft);
     if (probeLeft) {
-      cond.oriProbe = salient ? cond.oriRight : cond.oriLeft;
-      cond.oriRef = cond.oriRight;
+      condition.oriProbe = salient ? condition.oriRight : condition.oriLeft;
+      condition.oriRef = condition.oriRight;
     } else {
-      cond.oriProbe = salient ? cond.oriLeft : cond.oriRight;
-      cond.oriRef = cond.oriLeft;
+      condition.oriProbe = salient ? condition.oriLeft : condition.oriRight;
+      condition.oriRef = condition.oriLeft;
     }
 
-    cond.posLeft = this.generatePosition("left", [3, 5]);
-    cond.posRight = this.generatePosition("right", [2, 4]);
+    condition.posLeft = this.generatePosition("left", [3, 5]);
+    condition.posRight = this.generatePosition("right", [2, 4]);
 
     if (probeLeft) {
-      cond.posProbe = cond.posLeft;
-      cond.posRef = cond.posRight;
+      condition.posProbe = condition.posLeft;
+      condition.posRef = condition.posRight;
     } else {
-      cond.posProbe = cond.posRight;
-      cond.posRef = cond.posLeft;
+      condition.posProbe = condition.posRight;
+      condition.posRef = condition.posLeft;
     }
 
     // Create image paths
-    cond.bgImageLeft = `media/images/quick-toj/background_${cond.oriLeft}.png`;
-    cond.bgImageRight = `media/images/quick-toj/background_${cond.oriRight}.png`;
-    cond.probeImage = `media/images/quick-toj/target_${cond.oriProbe}.png`;
-    cond.refImage = `media/images/quick-toj/target_${cond.oriRef}.png`;
+    condition.bgImageLeft = `media/images/quick-toj/background_${condition.oriLeft}.png`;
+    condition.bgImageRight = `media/images/quick-toj/background_${condition.oriRight}.png`;
+    condition.probeImage = `media/images/quick-toj/target_${condition.oriProbe}.png`;
+    condition.refImage = `media/images/quick-toj/target_${condition.oriRef}.png`;
 
     // Set background image options
     const bgDimensions = {
@@ -98,11 +98,11 @@ class ConditionGenerator {
     };
 
     const bgOffset = ConditionGenerator.fieldWidth / 2;
-    cond.bgImageLeftProperties = {
+    condition.bgImageLeftProperties = {
       ...bgDimensions,
       x: -bgOffset,
     };
-    cond.bgImageRightProperties = {
+    condition.bgImageRightProperties = {
       ...bgDimensions,
       x: bgOffset,
     };
@@ -122,19 +122,19 @@ class ConditionGenerator {
     }
     let offsetY = -ConditionGenerator.fieldWidth / 2 + ConditionGenerator.gridSize / 2 - 1;
 
-    cond.probeImageProperties = {
+    condition.probeImageProperties = {
       ...stimulusDimensions,
-      x: cond.posProbe[0] + probeOffsetX,
-      y: cond.posProbe[1] + offsetY,
+      x: condition.posProbe[0] + probeOffsetX,
+      y: condition.posProbe[1] + offsetY,
     };
-    cond.refImageProperties = {
+    condition.refImageProperties = {
       ...stimulusDimensions,
-      x: cond.posRef[0] + refOffsetX,
-      y: cond.posRef[1] + offsetY,
+      x: condition.posRef[0] + refOffsetX,
+      y: condition.posRef[1] + offsetY,
     };
 
-    cond.preDelay = randomInt(30, 75) * 10;
-    return cond;
+    condition.preDelay = randomInt(30, 75) * 10;
+    return condition;
   }
 }
 

@@ -1,7 +1,7 @@
 /**
  * @title Color TOJ Negation 3b
  * @description Experiment on negation in TVA instructions (dual-colored version)
- * @version 2.1.1
+ * @version 3.0.0
  *
  * @imageDir images/common
  * @audioDir audio/color-toj-negation,audio/feedback

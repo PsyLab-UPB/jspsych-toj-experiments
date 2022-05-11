@@ -64,38 +64,38 @@ class ConditionGenerator {
   }
 
   generateCondition(probeLeft) {
-    const cond = {};
+    const condition = {};
 
     const [colorDegLeft, colorDegRight] = shuffle([-90, 90]);
-    cond.colorLeft = new LabColor(colorDegLeft);
-    cond.colorRight = new LabColor(colorDegRight);
-    cond.probeColorDegOffset = sample([-60, 60, -120, 120]);
+    condition.colorLeft = new LabColor(colorDegLeft);
+    condition.colorRight = new LabColor(colorDegRight);
+    condition.probeColorDegOffset = sample([-60, 60, -120, 120]);
 
     if (probeLeft) {
-      cond.colorProbe = cond.colorLeft.getRelativeColor(cond.probeColorDegOffset);
-      cond.colorProbeGrid = cond.colorLeft;
-      cond.colorReference = cond.colorRight;
+      condition.colorProbe = condition.colorLeft.getRelativeColor(condition.probeColorDegOffset);
+      condition.colorProbeGrid = condition.colorLeft;
+      condition.colorReference = condition.colorRight;
     } else {
-      cond.colorProbe = cond.colorRight.getRelativeColor(cond.probeColorDegOffset);
-      cond.colorProbeGrid = cond.colorRight;
-      cond.colorReference = cond.colorLeft;
+      condition.colorProbe = condition.colorRight.getRelativeColor(condition.probeColorDegOffset);
+      condition.colorProbeGrid = condition.colorRight;
+      condition.colorReference = condition.colorLeft;
     }
 
-    cond.rotationProbe = this.generateOrientation();
-    cond.rotationReference = this.mirrorOrientation(cond.rotationProbe);
+    condition.rotationProbe = this.generateOrientation();
+    condition.rotationReference = this.mirrorOrientation(condition.rotationProbe);
 
     const posLeft = this.generatePosition("left", [3, 5]);
     const posRight = this.generatePosition("right", [2, 4]);
     if (probeLeft) {
-      cond.posProbe = posLeft;
-      cond.posRef = posRight;
+      condition.posProbe = posLeft;
+      condition.posRef = posRight;
     } else {
-      cond.posProbe = posRight;
-      cond.posRef = posLeft;
+      condition.posProbe = posRight;
+      condition.posRef = posLeft;
     }
 
-    cond.fixationTime = randomInt(30, 75) * 10;
-    return cond;
+    condition.fixationTime = randomInt(30, 75) * 10;
+    return condition;
   }
 }
 
@@ -117,35 +117,35 @@ export async function run() {
     touchAdapterSpace.unbindFromElement(window);
   };
 
-  // timeline.push({
-  //   type: SurveyTextPlugin,
-  //   questions: [{ prompt: "Please enter your subject number." }],
-  //   data: {
-  //     userAgent: navigator.userAgent,
-  //   },
-  // });
+  timeline.push({
+    type: SurveyTextPlugin,
+    questions: [{ prompt: "Please enter your subject number." }],
+    data: {
+      userAgent: navigator.userAgent,
+    },
+  });
 
-  // // Switch to fullscreen
-  // timeline.push({
-  //   type: FullscreenPlugin,
-  //   fullscreen_mode: true,
-  // });
+  // Switch to fullscreen
+  timeline.push({
+    type: FullscreenPlugin,
+    fullscreen_mode: true,
+  });
 
-  // // Instructions
-  // timeline.push({
-  //   type: HtmlKeyboardResponsePlugin,
-  //   stimulus:
-  //     "<p>Sie sehen gleich ein Muster aus farbigen Strichen.<br/>" +
-  //     "Zwei sind etwas größer als die anderen und werden kurz blinken.<br/>" +
-  //     "Bitte beurteilen Sie, welcher zuerst geblinkt hat.</p>" +
-  //     "<p>War es der linke, drücken Sie die Taste <b>Q</b>.<br/>" +
-  //     "Falls der rechte zuerst geblinkt hat, drücken Sie die Taste <b>P</b>.</p>" +
-  //     "<p>Versuchen Sie, genau zu sein und keine Fehler zu machen. " +
-  //     "Wenn Sie nicht wissen, wer zuerst war, raten Sie.</p>" +
-  //     "<p>Press any key to start the experiment.</p>",
-  //   on_start: bindSpaceTouchAdapterToWindow,
-  //   on_finish: unbindSpaceTouchAdapterFromWindow,
-  // });
+  // Instructions
+  timeline.push({
+    type: HtmlKeyboardResponsePlugin,
+    stimulus:
+      "<p>Sie sehen gleich ein Muster aus farbigen Strichen.<br/>" +
+      "Zwei sind etwas größer als die anderen und werden kurz blinken.<br/>" +
+      "Bitte beurteilen Sie, welcher zuerst geblinkt hat.</p>" +
+      "<p>War es der linke, drücken Sie die Taste <b>Q</b>.<br/>" +
+      "Falls der rechte zuerst geblinkt hat, drücken Sie die Taste <b>P</b>.</p>" +
+      "<p>Versuchen Sie, genau zu sein und keine Fehler zu machen. " +
+      "Wenn Sie nicht wissen, wer zuerst war, raten Sie.</p>" +
+      "<p>Press any key to start the experiment.</p>",
+    on_start: bindSpaceTouchAdapterToWindow,
+    on_finish: unbindSpaceTouchAdapterFromWindow,
+  });
 
   // Generate trials
   const factors = {
@@ -169,19 +169,19 @@ export async function run() {
     reference_key: () => (jsPsych.timelineVariable("probeLeft") ? rightKey : leftKey),
     on_start: (trial) => {
       const probeLeft = jsPsych.timelineVariable("probeLeft");
-      const cond = conditionGenerator.generateCondition(probeLeft);
+      const condition = conditionGenerator.generateCondition(probeLeft);
 
       // Log probeLeft and condition
       trial.data = {
         probeLeft,
-        condition: cond,
+        condition,
       };
 
-      trial.fixation_time = cond.fixationTime;
+      trial.fixation_time = condition.fixationTime;
     },
     on_load: () => {
       const trial = jsPsych.getCurrentTrial();
-      const { condition: cond, probeLeft } = trial.data;
+      const { condition, probeLeft } = trial.data;
 
       const plugin = TojPlugin.current;
 
@@ -192,23 +192,23 @@ export async function run() {
 
       const [probeGrid, probeTarget] = createBarStimulusGrid(
         gridSize,
-        cond.posProbe,
-        cond.colorProbe.toRgb(),
-        cond.colorProbeGrid.toRgb(),
+        condition.posProbe,
+        condition.colorProbe.toRgb(),
+        condition.colorProbeGrid.toRgb(),
         targetScaleFactor,
         distractorScaleFactor,
         distractorScaleFactorSD,
-        cond.rotationProbe
+        condition.rotationProbe
       );
       const [referenceGrid, referenceTarget] = createBarStimulusGrid(
         gridSize,
-        cond.posRef,
-        cond.colorReference.toRgb(),
-        cond.colorReference.toRgb(),
+        condition.posRef,
+        condition.colorReference.toRgb(),
+        condition.colorReference.toRgb(),
         targetScaleFactor,
         distractorScaleFactor,
         distractorScaleFactorSD,
-        cond.rotationReference
+        condition.rotationReference
       );
 
       trial.probe_element = probeTarget;
