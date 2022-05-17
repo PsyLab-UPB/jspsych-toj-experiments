@@ -126,7 +126,59 @@ export function addIntroduction(jsPsych, timeline, options) {
     stimulus: () => {
       return `<iframe class="declaration" src="media/misc/declaration_${globalProps.instructionLanguage}.html"></iframe>`;
     },
-    choices: () => (globalProps.instructionLanguage === "en" ? ["I agree"] : ["Ich stimme zu"]),
+    choices: () =>
+      globalProps.instructionLanguage === "en"
+        ? ["I agree with the terms and conditions"]
+        : ["Ich stimme den Versuchsbedingungen zu"],
+  });
+
+  // Instructions to prepare computer
+  // Disable any color temperature changeing software / settings
+  timeline.push({
+    type: HtmlButtonResponsePlugin,
+    stimulus: () => {
+      return `<iframe class="technical-instruction" src="media/misc/technical_instructions_color_temperature_${globalProps.instructionLanguage}.html"></iframe>`;
+    },
+    choices: () =>
+      globalProps.instructionLanguage === "en"
+        ? ["The blue light filter are deactivated"]
+        : ["Die Blaulichtfilter sind deaktiviert"],
+  });
+
+  // Disable dark reader
+  timeline.push({
+    type: HtmlButtonResponsePlugin,
+    stimulus: () => {
+      return `<iframe class="technical-instruction" src="media/misc/technical_instructions_dark_reader_${globalProps.instructionLanguage}.html"></iframe>`;
+    },
+    choices: () =>
+      globalProps.instructionLanguage === "en"
+        ? ["Dark mode is inactive <br>and my screen is sufficiently small"]
+        : ["Dark mode ist abgeschaltet <br>und mein Bildschirm ist ausreichend klein"],
+  });
+
+  // Color vision test
+  timeline.push({
+    type: HtmlButtonResponsePlugin,
+    stimulus: () => {
+      return `<iframe class="technical-instruction" src="media/misc/technical_instructions_color_vision_${globalProps.instructionLanguage}.html"></iframe>`;
+    },
+    choices: () =>
+      globalProps.instructionLanguage === "en"
+        ? ["I do not have color vision deficiencies"]
+        : ["Ich habe keine Farbsehschwäche"],
+  });
+
+  // Turn on sound
+  timeline.push({
+    type: HtmlButtonResponsePlugin,
+    stimulus: () => {
+      return `<iframe class="technical-instruction" src="media/misc/technical_instructions_sound_${globalProps.instructionLanguage}.html"></iframe>`;
+    },
+    choices: () =>
+      globalProps.instructionLanguage === "en"
+        ? ["Computer sounds are enabled"]
+        : ["Der Ton ist eingeschaltet"],
   });
 
   // Participant code announcement / input
