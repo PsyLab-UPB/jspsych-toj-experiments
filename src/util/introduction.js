@@ -2,11 +2,10 @@
  * Helper functions to add standard introductory jsPsych trials to a jsPsych timeline.
  */
 
-// jsPsych plugins
-import "jspsych/plugins/jspsych-html-button-response";
-import "jspsych/plugins/jspsych-survey-text";
-import "jspsych/plugins/jspsych-survey-multi-choice";
-import "jspsych/plugins/jspsych-fullscreen";
+import SurveyMultiChoicePlugin from "@jspsych/plugin-survey-multi-choice";
+import SurveyTextPlugin from "@jspsych/plugin-survey-text";
+import HtmlButtonResponsePlugin from "@jspsych/plugin-html-button-response";
+import FullscreenPlugin from "@jspsych/plugin-fullscreen";
 
 import estimateVsync from "vsync-estimate";
 import { customAlphabet } from "nanoid";
@@ -23,15 +22,18 @@ marked.setOptions({ breaks: true });
  *  * A welcome page with radio buttons for first time participation and language selection, including vsync detection and user agent logging in the background
  *  * A declaration of consent page
  *  * A participation code announcement or input page
+ *  * A page to select if it is the last participation
  *  * An age prompt
  *  * A gender prompt
  *  * A switch-to-fullscreen page
  *  * A tutorial page
  *
+ * @param {import("jspsych").JsPsych} jsPsych The jsPsych instance of the experiment
  * @param {any[]} timeline The jsPsych timeline to add the introduction trials to
  * @param {{
  *   skip?: boolean; // Whether or not to skip the introduction and use default properties; useful for development.
  *   experimentName: string;
+ *   askForLastParticipation: boolean;
  *   instructions: { // Markdown instruction strings
  *     de: string;
  *     en: string;
@@ -40,15 +42,17 @@ marked.setOptions({ breaks: true });
  *
  * @returns {{
  *  instructionLanguage: "de"|"en";
- *  isFirstParticipation: boolean;,
+ *  isFirstParticipation: boolean;
+ *  isLastParticipation: boolean;
  *  participantCode: string;
  * }}
  */
-export function addIntroduction(timeline, options) {
+export function addIntroduction(jsPsych, timeline, options) {
   if (options.skip) {
     return {
       instructionLanguage: "en",
       isFirstParticipation: false,
+      isLastParticipation: false,
       participantCode: "ABCD",
     };
   }
@@ -56,7 +60,7 @@ export function addIntroduction(timeline, options) {
   const globalProps = {};
 
   timeline.push({
-    type: "survey-multi-choice",
+    type: SurveyMultiChoicePlugin,
     preamble: `<p>Welcome to the ${options.experimentName} experiment!</p>`,
     questions: [
       {
@@ -75,10 +79,9 @@ export function addIntroduction(timeline, options) {
       trial.data.refreshRate = Math.round(rate);
     },
     on_finish: (trial) => {
-      const responses = JSON.parse(trial.responses);
       const newProps = {
-        isFirstParticipation: responses.Q0 === "Yes",
-        instructionLanguage: responses.Q1 === "Deutsch" ? "de" : "en",
+        isFirstParticipation: trial.response.Q0 === "Yes",
+        instructionLanguage: trial.response.Q1 === "Deutsch" ? "de" : "en",
       };
       Object.assign(globalProps, newProps);
       jsPsych.data.addProperties(newProps);
@@ -92,20 +95,26 @@ export function addIntroduction(timeline, options) {
     conditional_function: () => !globalProps.isFirstParticipation,
     timeline: [
       {
-        type: "survey-text",
-        questions: [
-          {
-            prompt:
-              "<p>Please enter your participant code (the one you got the first time you participated in this experiment).</p>",
-            required: true,
-          },
-        ],
+        type: SurveyTextPlugin,
+        questions: () => {
+          if (globalProps.instructionLanguage === "en") {
+            return [{ 
+              prompt: 
+                "<p>Please enter your participant code (that you got the first time you participated in this experiment).</p>",
+              required: true,
+            }];
+          } else {
+            return [{ 
+              prompt: 
+                "<p>Bitte geben sie ihren Teilnahme-Code ein (den Sie bei der ersten Teilnahme an diesem Experiment bekommen haben).</p>", 
+              required: true,
+            }];
+          };    
+        },
         on_finish: (trial) => {
-          const responses = JSON.parse(trial.responses);
           const newProps = {
-            participantCode: responses.Q0,
+            participantCode: trial.response.Q0,
           };
-          Object.assign(globalProps, newProps);
           jsPsych.data.addProperties(newProps);
         },
       },
@@ -113,57 +122,11 @@ export function addIntroduction(timeline, options) {
   });
 
   timeline.push({
-    type: "html-button-response",
+    type: HtmlButtonResponsePlugin,
     stimulus: () => {
       return `<iframe class="declaration" src="media/misc/declaration_${globalProps.instructionLanguage}.html"></iframe>`;
     },
     choices: () => (globalProps.instructionLanguage === "en" ? ["I agree"] : ["Ich stimme zu"]),
-  });
-
-  // Instructions to prepare computer
-  // Disable any color temperature changeing software / settings
-  timeline.push({
-    type: "html-button-response",
-    stimulus: () => {
-      return `<iframe class="technical-instruction" src="media/misc/technical_instructions_color_temperature_${globalProps.instructionLanguage}.html"></iframe>`;
-    },
-    choices: () => (globalProps.instructionLanguage === "en" ? ["Done"] : ["Habe ich getan"]),
-  });
-
-  // Disable dark reader
-  timeline.push({
-    type: "html-button-response",
-    stimulus: () => {
-      return `<iframe class="technical-instruction" src="media/misc/technical_instructions_dark_reader_${globalProps.instructionLanguage}.html"></iframe>`;
-    },
-    choices: () =>
-      globalProps.instructionLanguage === "en"
-        ? ["Dark mode is inactive"]
-        : ["Dark mode ist abgeschaltet"],
-  });
-
-  // Color vision test
-  timeline.push({
-    type: "html-button-response",
-    stimulus: () => {
-      return `<iframe class="technical-instruction" src="media/misc/technical_instructions_color_vision_${globalProps.instructionLanguage}.html"></iframe>`;
-    },
-    choices: () =>
-      globalProps.instructionLanguage === "en"
-        ? ["I do not have color vision deficiencies"]
-        : ["Ich habe keine Farbsehschwäche"],
-  });
-
-  // Turn on sound
-  timeline.push({
-    type: "html-button-response",
-    stimulus: () => {
-      return `<iframe class="technical-instruction" src="media/misc/technical_instructions_sound_${globalProps.instructionLanguage}.html"></iframe>`;
-    },
-    choices: () =>
-      globalProps.instructionLanguage === "en"
-        ? ["Computer sounds are enabled"]
-        : ["Der Ton ist eingeschaltet"],
   });
 
   // Participant code announcement / input
@@ -171,7 +134,7 @@ export function addIntroduction(timeline, options) {
     conditional_function: () => globalProps.isFirstParticipation,
     timeline: [
       {
-        type: "html-button-response",
+        type: HtmlButtonResponsePlugin,
         stimulus: () => {
           const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ123456789", 4);
           const participantCode = nanoid();
@@ -199,16 +162,54 @@ export function addIntroduction(timeline, options) {
     ],
   });
 
+  // Ask for last participation
+  timeline.push({
+    conditional_function: () =>
+      options.askForLastParticipation === true && !globalProps.isFirstParticipation,
+    timeline: [
+      {
+        type: "survey-multi-choice",
+        questions: () => {
+          if (globalProps.instructionLanguage === "en") {
+            return [
+              {
+                prompt: "Is this your last participation in this experiment?",
+                options: ["Yes", "No"],
+                required: true,
+              },
+            ];
+          } else {
+            return [
+              {
+                prompt: "Ist dies Ihre letzte Teilnahme an diesem Experiment?",
+                options: ["Ja", "Nein"],
+                required: true,
+              },
+            ];
+          }
+        },
+        on_finish: (trial) => {
+          const responses = JSON.parse(trial.responses);
+          const newProps = {
+            isLastParticipation: responses.Q0 === "Yes" || responses.Q0 === "Ja",
+          };
+          Object.assign(globalProps, newProps);
+          jsPsych.data.addProperties(newProps);
+        },
+      },
+    ],
+  });
+
   // Age prompt
   timeline.push({
     conditional_function: () => globalProps.isFirstParticipation,
     timeline: [
       {
-        type: "survey-text",
-        questions: [{ prompt: "Please enter your age in years.", required: true }],
+        type: SurveyTextPlugin,
+        questions: [{ prompt: "Please enter your age.", required: true }],
       },
       {
-        type: "survey-multi-choice",
+        type: SurveyMultiChoicePlugin,
         questions: [
           {
             prompt: "Please select your gender.",
@@ -223,13 +224,21 @@ export function addIntroduction(timeline, options) {
 
   // Switch to fullscreen
   timeline.push({
-    type: "fullscreen",
+    type: FullscreenPlugin,
     fullscreen_mode: true,
+    message: () => 
+      globalProps.instructionLanguage === "en"
+        ? ["<p>The experiment will switch to full screen mode when you press the button below.</p>"]
+        : ["<p>Das Experiment wechselt in den Vollbild-Modus, sobald Sie die Schaltfläche betätigen.</p>"],
+    button_label: () => 
+      globalProps.instructionLanguage === "en"
+        ? ["Switch to full screen mode"]
+        : ["In Vollbild-Modus wechseln"],
   });
 
   // Instructions
   timeline.push({
-    type: "html-button-response",
+    type: HtmlButtonResponsePlugin,
     stimulus: () =>
       marked(
         globalProps.instructionLanguage === "en" ? options.instructions.en : options.instructions.de
