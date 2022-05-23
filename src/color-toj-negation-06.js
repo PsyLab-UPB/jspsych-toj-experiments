@@ -148,6 +148,15 @@ const rightKey = "p";
 export function createTimeline() {
   let timeline = [];
 
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+
+  const PParticipantID = urlParams.get('PROLIFIC_PID')
+  const PStudyID = urlParams.get('STUDY_ID')
+  const PSessionD = urlParams.get('SESSION_ID')
+
+  jsPsych.data.addProperties({PParticipantID, PStudyID, PSessionD})
+
   const touchAdapterSpace = new TouchAdapter(
     jsPsych.pluginAPI.convertKeyCharacterToKeyCode("space")
   );
