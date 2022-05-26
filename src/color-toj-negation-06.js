@@ -7,7 +7,7 @@
  * - Instruction phase: discouraged use of large screens
  * - introduction.js: Added prompt asking whether this will be a participant's last session. If so: After finishing the last session: Ask participants about their guess about the hypothesis of this study
  * - Depending on the participant code (that is generated randomly initially), half participants get assigned to a version where the answer keys Q (for "first") and P (for "second") are switched. The same participant code results in the same answer key mapping.
- * @version 2.0.1
+ * @version 3.0.1
  * @imageDir images/common
  * @audioDir audio/color-toj-negation,audio/feedback
  * @miscDir misc
@@ -18,12 +18,12 @@
 import "../styles/main.scss";
 
 // jsPsych plugins
-import "jspsych/plugins/jspsych-html-keyboard-response";
-import "jspsych/plugins/jspsych-survey-text";
-import "jspsych/plugins/jspsych-call-function";
-import { TojPluginWhichFirst } from "./plugins/jspsych-toj-negation-which_first";
-import tojPlugin from "./plugins/jspsych-toj-negation-which_first";
-
+import HtmlKeyboardResponsePlugin from "@jspsych/plugin-html-keyboard-response";
+import PreloadPlugin from "@jspsych/plugin-preload";
+import SurveyTextPlugin from "@jspsych/plugin-survey-text";
+import CallFunction from "@jspsych/plugin-call-function";
+import WhichFirstTojPlugin from "./plugins/WhichFirstTojPlugin";
+import FullscreenPlugin from "@jspsych/plugin-fullscreen";
 import { generateAlternatingSequences, copy } from "./util/trialGenerator";
 
 import delay from "delay";
@@ -36,10 +36,10 @@ import { createBarStimulusGrid } from "./util/barStimuli";
 import { setAbsolutePosition } from "./util/positioning";
 import { LabColor } from "./util/colors";
 import { addIntroduction } from "./util/introduction-ctoj-neg06";
+import { initJsPsych } from "jspsych";
 
 const soaChoices = [-6, -3, -1, 0, 1, 3, 6].map((x) => (x * 16.6667).toFixed(3));
 const soaChoicesTutorial = [-6, -3, 3, 6].map((x) => (x * 16.6667).toFixed(3));
-
 
 const debugmode = false;
 
@@ -106,7 +106,7 @@ class ConditionGenerator {
     this._previousPositions[identifier] = pos;
     return pos;
   }
-  
+
   static getRandomPrimaryColor() {
     return new LabColor(sample([0, 180]));
   }
@@ -130,7 +130,7 @@ class ConditionGenerator {
       const xRange = target.isLeft ? [3, 5] : [2, 4];
       target.gridPosition = ConditionGenerator.generateRandomPos(xRange, [2, 5]);
     });
-    
+
     targets = { probe, reference, fixationTime: randomInt(300, 500) };
 
     return {
@@ -145,12 +145,11 @@ const conditionGenerator = new ConditionGenerator();
 const leftKey = "q";
 const rightKey = "p";
 
-export function createTimeline() {
-  let timeline = [];
+export async function run({ assetPaths }) {
+  const jsPsych = initJsPsych();
+  const timeline = [{ type: PreloadPlugin, audio: assetPaths.audio }];
 
-  const touchAdapterSpace = new TouchAdapter(
-    jsPsych.pluginAPI.convertKeyCharacterToKeyCode("space")
-  );
+  const touchAdapterSpace = new TouchAdapter("space");
   const bindSpaceTouchAdapterToWindow = async () => {
     await delay(500); // Prevent touch event from previous touch
     touchAdapterSpace.bindToElement(window);
@@ -158,7 +157,7 @@ export function createTimeline() {
   const unbindSpaceTouchAdapterFromWindow = () => {
     touchAdapterSpace.unbindFromElement(window);
   };
-  
+
   var showInstructions = function () {
     let participantID = globalProps.participantCode;
     let isAnswerKeySwitchEnabled = participantID.charCodeAt(0) % 2 === 0;
@@ -235,7 +234,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     return globalProps.instructionLanguage === "en" ? instructions.en : instructions.de;
   };
 
-  const globalProps = addIntroduction(timeline, {
+  const globalProps = addIntroduction(jsPsych, timeline, {
     skip: false,
     askForLastParticipation: true,
     experimentName: "Color TOJ-N6",
@@ -245,13 +244,13 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
   // Generate trials
   const factors = {
     isInstructionNegated: [true, false],
-    
+
     soa: soaChoices,
     sequenceLength: [1, 2, 5],
   };
   const factorsTutorial = {
     isInstructionNegated: [true, false],
-    
+
     soa: soaChoicesTutorial,
     sequenceLength: [1, 2, 5],
   };
@@ -261,11 +260,12 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     sequenceLength: [1, 2],
   };
   const repetitions = 1;
-  
+
   const blocksize = 40;
   const probeLeftIsFactor = true; // if true, it adds an implicit repetition
   const alwaysStayUnderBlockSize = false;
   let trialData = generateAlternatingSequences(
+    jsPsych,
     factors,
     repetitions,
     probeLeftIsFactor,
@@ -274,34 +274,29 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
   );
 
   if (debugmode) {
-    trialData = generateAlternatingSequences(factorsDebug, 1, false, 1, false);
+    trialData = generateAlternatingSequences(jsPsych, factorsDebug, 1, false, 1, false);
   }
- 
 
   let trials = trialData.trials;
   let blockCount = trialData.blockCount;
 
-  const touchAdapterLeft = new TouchAdapter(
-    jsPsych.pluginAPI.convertKeyCharacterToKeyCode(leftKey)
-  );
-  const touchAdapterRight = new TouchAdapter(
-    jsPsych.pluginAPI.convertKeyCharacterToKeyCode(rightKey)
-  );
+  const touchAdapterLeft = new TouchAdapter(leftKey);
+  const touchAdapterRight = new TouchAdapter(rightKey);
 
   let scaler; // Will store the Scaler object for the TOJ plugin
 
   // Create TOJ plugin trial object
   const toj = {
-    type: "toj-which_first",
-    modification_function: (element) => TojPluginWhichFirst.flashElement(element, "toj-flash", 30),
+    type: WhichFirstTojPlugin,
+    modification_function: (element) => WhichFirstTojPlugin.flashElement(element, "toj-flash", 30),
     soa: jsPsych.timelineVariable("soa"),
-    first_key: () => (globalProps.isAnswerKeySwitchEnabled ? rightKey : leftKey), //leftKey,
-    second_key: () => (globalProps.isAnswerKeySwitchEnabled ? leftKey : rightKey), //rightKey,
-    probe_key: () => "undefined",
-    reference_key: () => "undefined",
+    //first_key: () => (globalProps.isAnswerKeySwitchEnabled ? rightKey : leftKey), //leftKey,
+    //second_key: () => (globalProps.isAnswerKeySwitchEnabled ? leftKey : rightKey), //rightKey,
+    probe_key: () => (globalProps.isAnswerKeySwitchEnabled ? rightKey : leftKey), //leftKey,
+    reference_key: () => (globalProps.isAnswerKeySwitchEnabled ? leftKey : rightKey), //rightKey,
     instruction_negated: jsPsych.timelineVariable("isInstructionNegated"),
     instruction_voice: () => sample(["m", "f"]),
-    on_start: async (trial) => {
+    on_start: (trial) => {
       // console.log(trial.soa)
       // console.log(trial.hasGreenInInstruction ? "green called": "red called")
       // console.log((trial.hasGreenInInstruction !== trial.instruction_negated) ? "green meant": "red meant")
@@ -309,12 +304,12 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
       // console.log((trial.soa <= 0  === (trial.hasGreenInInstruction != trial.instruction_negated ))? leftKey : rightKey)
       const probeLeft = jsPsych.timelineVariable("probeLeft", true);
 
-      const cond = conditionGenerator.generateCondition(probeLeft);
+      const condition = conditionGenerator.generateCondition(probeLeft);
 
       // Log probeLeft and condition
       trial.data = {
         probeLeft,
-        condition: cond,
+        condition,
         sequenceLength: jsPsych.timelineVariable("sequenceLength", true),
         rank: jsPsych.timelineVariable("rank", true),
         blockIndex: jsPsych.timelineVariable("blockIndex", true),
@@ -322,13 +317,24 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
         trialIndexInThisBlock: jsPsych.timelineVariable("trialIndexInBlock", true),
       };
 
-      trial.fixation_time = cond.fixationTime;
+      trial.fixation_time = condition.fixationTime;
       trial.instruction_language = globalProps.instructionLanguage;
-      
+
+      // Set instruction color
+      trial.instruction_filename = (
+        trial.instruction_negated ? condition.targets.reference : condition.targets.probe
+      ).color.toName();
+    },
+    on_load: async () => {
+      const trial = jsPsych.getCurrentTrial();
+      const { condition } = trial.data;
+
+      const plugin = WhichFirstTojPlugin.current;
+
       const gridColor = "#777777";
 
       // Create targets and grids
-      [cond.targets.probe, cond.targets.reference].map((target) => {
+      [condition.targets.probe, condition.targets.reference].map((target) => {
         const [gridElement, targetElement] = createBarStimulusGrid(
           ConditionGenerator.gridSize,
           target.gridPosition,
@@ -337,9 +343,9 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
           1,
           0.7,
           0.1,
-          cond.rotation
+          condition.rotation
         );
-        tojPlugin.appendElement(gridElement);
+        plugin.appendElement(gridElement);
         (target.isLeft ? touchAdapterLeft : touchAdapterRight).bindToElement(gridElement);
 
         setAbsolutePosition(
@@ -355,22 +361,14 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
           trial.reference_element = targetElement;
         }
       });
-      if(debugmode){
-        console.log("Probe color: "+ cond.targets.probe.color.toName())
-        console.log("Ref color: "+ cond.targets.reference.color.toName())
+      if (debugmode) {
+        console.log("Probe color: " + condition.targets.probe.color.toName());
+        console.log("Ref color: " + condition.targets.reference.color.toName());
       }
 
-      // Set instruction color
-      trial.instruction_filename = (trial.instruction_negated
-        ? cond.targets.reference
-        : cond.targets.probe
-      ).color.toName();
-
-    },
-    on_load: async () => {
       // Fit to window size
       scaler = new Scaler(
-        document.getElementById("jspsych-toj-container"),
+        plugin.container,
         ConditionGenerator.gridSize[0] * 40 * 2,
         ConditionGenerator.gridSize[1] * 40,
         10
@@ -380,7 +378,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
       scaler.destruct();
       touchAdapterLeft.unbindFromAll();
       touchAdapterRight.unbindFromAll();
-      
+
       if (debugmode) {
         console.log(data);
       }
@@ -394,23 +392,21 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
   };
 
   const cursor_off = {
-    type: "call-function",
+    type: CallFunction,
     func: function () {
       document.body.style.cursor = "none";
     },
   };
 
   const cursor_on = {
-    type: "call-function",
+    type: CallFunction,
     func: function () {
       document.body.style.cursor = "auto";
     },
   };
-  
 
   // Tutorial
-  let trialDataTutorial = generateAlternatingSequences(factorsTutorial, 5, true); // generate trials with larger SOAs in tutorial
-
+  let trialDataTutorial = generateAlternatingSequences(jsPsych, factorsTutorial, 5, true); // generate trials with larger SOAs in tutorial
   let trialsTutorial = trialDataTutorial.trials.slice(0, debugmode ? 10 : 30);
   //let trialsTutorial = trials.slicetrials.slice(0, debugmode ? 10 : 30); // or duplicate trials that are actually used
 
@@ -423,7 +419,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     },
     cursor_on,
     {
-      type: "html-keyboard-response",
+      type: HtmlKeyboardResponsePlugin,
       choices: [" "],
       stimulus: "<p>You finished the tutorial.</p><p>Press SPACE key or touch to continue.</p>",
       on_start: bindSpaceTouchAdapterToWindow,
@@ -431,20 +427,19 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     }
   );
 
-  
   // The trials array contains too many items for a block, so we divide the conditions into two
   // blocks. BUT: We cannot easily alternate between the first half and the second half of the
   // trials array in the `experimentTojTimeline` because the timeline_variables property does not
   // take a function. Hence, we manually create all timeline entries instead of using nested
   // timelines. :|
-  
+
   const makeBlockFinishedScreenTrial = (block, blockCount) => ({
-    type: "html-keyboard-response",
+    type: HtmlKeyboardResponsePlugin,
     choices: () => {
       if (block < blockCount) {
         return [" "];
       } else {
-        return jsPsych.ALL_KEYS;
+        return "ALL_KEYS";
       }
     },
     stimulus: () => {
@@ -463,46 +458,49 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     conditional_function: () => globalProps.isLastParticipation === true,
     timeline: [
       {
-        type: "survey-text",
+        type: SurveyTextPlugin,
         questions: () => {
           if (globalProps.instructionLanguage === "en") {
             return [
-              { 
+              {
                 name: "What do you reckon we are investigating? What do you think might be the result of the study?",
-                prompt: "<p>What do you reckon we are investigating? What do you think might be the result of the study?</p>", 
+                prompt:
+                  "<p>What do you reckon we are investigating? What do you think might be the result of the study?</p>",
                 required: true,
                 rows: 10,
                 columns: 60,
-              }
+              },
             ];
           } else {
             return [
-              { 
+              {
                 name: "Haben Sie eine Vermutung, was wir untersuchen und was herauskommen könnte?",
-                prompt: "<p>Haben Sie eine Vermutung, was wir untersuchen und was herauskommen könnte?</p>", 
+                prompt:
+                  "<p>Haben Sie eine Vermutung, was wir untersuchen und was herauskommen könnte?</p>",
                 required: true,
                 rows: 10,
                 columns: 60,
-              }
+              },
             ];
-          };
+          }
         },
       },
       {
-        type: "survey-text",
+        type: SurveyTextPlugin,
         questions: () => {
           if (globalProps.instructionLanguage === "en") {
             return [
-              { 
+              {
                 name: "Please estimate: How often were negations (not red or not green) said in successive trials?",
-                prompt: "<p>Please estimate: How often were negations (\"not red\" or \"not green\") said in successive trials?</p>", 
+                prompt:
+                  '<p>Please estimate: How often were negations ("not red" or "not green") said in successive trials?</p>',
                 required: true,
                 rows: 10,
                 columns: 60,
               },
               {
-                name: "Do these negations follow a pattern?", 
-                prompt: "<p>Do these negations follow a pattern?</p>", 
+                name: "Do these negations follow a pattern?",
+                prompt: "<p>Do these negations follow a pattern?</p>",
                 required: true,
                 rows: 10,
                 columns: 60,
@@ -510,39 +508,41 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
             ];
           } else {
             return [
-              { 
+              {
                 name: "Schätzen Sie: Wie häufig wurden Negationen (nicht rot oder nicht grün) in direkt aufeinanderfolgenden Durchgängen genannt?",
-                prompt: "<p>Schätzen Sie: Wie häufig wurden Negationen (\"nicht rot\" oder \"nicht grün\") in direkt aufeinanderfolgenden Durchgängen genannt?</p>", 
+                prompt:
+                  '<p>Schätzen Sie: Wie häufig wurden Negationen ("nicht rot" oder "nicht grün") in direkt aufeinanderfolgenden Durchgängen genannt?</p>',
                 required: true,
                 rows: 10,
                 columns: 60,
               },
               {
                 name: "Folgen die Negationen einem Muster?",
-                prompt: "<p>Folgen die Negationen einem Muster?</p>", 
+                prompt: "<p>Folgen die Negationen einem Muster?</p>",
                 required: true,
                 rows: 10,
                 columns: 60,
               },
             ];
-          };    
+          }
         },
       },
       {
-        type: "survey-text",
+        type: SurveyTextPlugin,
         questions: () => {
           if (globalProps.instructionLanguage === "en") {
             return [
-              { 
+              {
                 name: "Please estimate: How often were sentences without negation (now red or now green) said in successive trials?",
-                prompt: "<p>Please estimate: How often were sentences without negation (\"now red\" or \"now green\") said in successive trials?</p>", 
+                prompt:
+                  '<p>Please estimate: How often were sentences without negation ("now red" or "now green") said in successive trials?</p>',
                 required: true,
                 rows: 10,
                 columns: 60,
               },
               {
                 name: "Do these sentences follow a pattern?",
-                prompt: "<p>Do these sentences follow a pattern?</p>", 
+                prompt: "<p>Do these sentences follow a pattern?</p>",
                 required: true,
                 rows: 10,
                 columns: 60,
@@ -550,38 +550,43 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
             ];
           } else {
             return [
-              { 
+              {
                 name: "Schätzen Sie: Wie häufig wurden Sätze ohne Negation (jetzt rot oder jetzt grün) in direkt aufeinanderfolgenden Durchgängen genannt?",
-                prompt: "<p>Schätzen Sie: Wie häufig wurden Sätze ohne Negation (\"jetzt rot\" oder \"jetzt grün\") in direkt aufeinanderfolgenden Durchgängen genannt?</p>", 
+                prompt:
+                  '<p>Schätzen Sie: Wie häufig wurden Sätze ohne Negation ("jetzt rot" oder "jetzt grün") in direkt aufeinanderfolgenden Durchgängen genannt?</p>',
                 required: true,
                 rows: 10,
                 columns: 60,
               },
               {
                 name: "Folgen diese Sätze einem Muster?",
-                prompt: "<p>Folgen diese Sätze einem Muster?</p>", 
+                prompt: "<p>Folgen diese Sätze einem Muster?</p>",
                 required: true,
                 rows: 10,
                 columns: 60,
               },
             ];
-          };    
+          }
         },
-      },  
+      },
     ],
   };
-  
+
   const finalScreen = {
-    type: "html-keyboard-response",
-    choices: jsPsych.ALL_KEYS,
-    stimulus: () =>  
+    type: HtmlKeyboardResponsePlugin,
+    choices: "ALL_KEYS",
+    stimulus: () =>
       globalProps.instructionLanguage === "en"
-        ? ["<h1>This part of the experiment is finished.</h1><p>Thank you for participating. Press any key or touch to submit the results.</p>"]
-        : ["<h1>Vielen Dank für Ihre Teilnahme am Experiment!</h1><p>Drücken Sie eine beliebige Taste oder berühren Sie Ihren Touchscreen um die Resultate abzusenden.</p>"],
+        ? [
+            "<h1>This part of the experiment is finished.</h1><p>Thank you for participating. Press any key or touch to submit the results.</p>",
+          ]
+        : [
+            "<h1>Vielen Dank für Ihre Teilnahme am Experiment!</h1><p>Drücken Sie eine beliebige Taste oder berühren Sie Ihren Touchscreen um die Resultate abzusenden.</p>",
+          ],
     on_start: bindSpaceTouchAdapterToWindow,
     on_finish: unbindSpaceTouchAdapterFromWindow,
-  }
-  
+  };
+
   let timelineVariablesBlock = [];
   let curBlockIndex = 0;
 
@@ -638,11 +643,12 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
 
   // Disable fullscreen
   timeline.push({
-    type: "fullscreen",
+    type: FullscreenPlugin,
     fullscreen_mode: false,
   });
 
-  return timeline;
+  await jsPsych.run(timeline);
+  return jsPsych;
 }
 
 function debugPrint(trialVars, factors) {

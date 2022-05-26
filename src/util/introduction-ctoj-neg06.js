@@ -83,6 +83,7 @@ export function addIntroduction(jsPsych, timeline, options) {
         isFirstParticipation: trial.response.Q0 === "Yes",
         instructionLanguage: trial.response.Q1 === "Deutsch" ? "de" : "en",
       };
+      Object.assign(globalProps, newProps);
       jsPsych.data.addProperties(newProps);
     },
     data: {
@@ -243,6 +244,7 @@ export function addIntroduction(jsPsych, timeline, options) {
           const newProps = {
             isLastParticipation: trial.response.Q0 === "Yes" || trial.response.Q0 === "Ja",
           };
+          Object.assign(globalProps, newProps);
           jsPsych.data.addProperties(newProps);
         },
       },
