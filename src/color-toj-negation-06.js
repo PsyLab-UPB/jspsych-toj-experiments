@@ -151,11 +151,14 @@ export function createTimeline() {
   const queryString = window.location.search;
   const urlParams = new URLSearchParams(queryString);
 
-  const PParticipantID = urlParams.get('PROLIFIC_PID')
-  const PStudyID = urlParams.get('STUDY_ID')
-  const PSessionD = urlParams.get('SESSION_ID')
+  const prolific_participant_id = urlParams.get('PROLIFIC_PID')
+  const prolific_study_id = urlParams.get('STUDY_ID')
+  const prolific_session_id = urlParams.get('SESSION_ID')
 
-  jsPsych.data.addProperties({PParticipantID, PStudyID, PSessionD})
+  jsPsych.data.addProperties({
+    prolific_participant_id: prolific_participant_id, 
+    prolific_study_id: prolific_study_id, 
+    prolific_session_id: prolific_session_id})
 
   const touchAdapterSpace = new TouchAdapter(
     jsPsych.pluginAPI.convertKeyCharacterToKeyCode("space")
