@@ -41,7 +41,13 @@ const soaChoices = [-6, -3, -1, 0, 1, 3, 6].map((x) => (x * 16.6667).toFixed(3))
 const soaChoicesTutorial = [-6, -3, 3, 6].map((x) => (x * 16.6667).toFixed(3));
 
 
-const debugmode = false;
+const debugmode = true;
+const IS_A_PROLIFIC_STUDY = true;
+
+// is only relevant if IS_A_PROLIFIC_STUDY evaluates to true
+const IS_STARTING_QUESTIONNAIRE_ENABLED = false;
+const IS_FINAL_QUESTIONNAIRE_ENABLED = true;
+
 
 class TojTarget {
   /**
@@ -252,6 +258,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     askForLastParticipation: true,
     experimentName: "Color TOJ-N6",
     instructions: showInstructions,
+    isAProlificStudy: IS_A_PROLIFIC_STUDY
   });
 
   // Generate trials

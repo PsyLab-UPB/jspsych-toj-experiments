@@ -37,7 +37,8 @@ marked.setOptions({ breaks: true });
  *   instructions: { // Markdown instruction strings
  *     de: string;
  *     en: string;
- *   }
+ *   };
+ *   isAProlificStudy: boolean;
  * }} options
  *
  * @returns {{
@@ -93,7 +94,7 @@ export function addIntroduction(timeline, options) {
   });
 
   timeline.push({
-    conditional_function: () => !globalProps.isFirstParticipation,
+    conditional_function: () => !globalProps.isFirstParticipation && !options.isAProlificStudy,
     timeline: [
       {
         type: "survey-text",
@@ -180,7 +181,7 @@ export function addIntroduction(timeline, options) {
 
   // Participant code announcement / input
   timeline.push({
-    conditional_function: () => globalProps.isFirstParticipation,
+    conditional_function: () => globalProps.isFirstParticipation && !options.isAProlificStudy,
     timeline: [
       {
         type: "html-button-response",
