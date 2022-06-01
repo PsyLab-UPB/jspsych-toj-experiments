@@ -94,18 +94,22 @@ export function addIntroduction(jsPsych, timeline, options) {
         type: SurveyTextPlugin,
         questions: () => {
           if (globalProps.instructionLanguage === "en") {
-            return [{ 
-              prompt: 
-                "<p>Please enter your participant code (that you got the first time you participated in this experiment).</p>",
-              required: true,
-            }];
+            return [
+              {
+                prompt:
+                  "<p>Please enter your participant code (that you got the first time you participated in this experiment).</p>",
+                required: true,
+              },
+            ];
           } else {
-            return [{ 
-              prompt: 
-                "<p>Bitte geben sie ihren Teilnahme-Code ein (den Sie bei der ersten Teilnahme an diesem Experiment bekommen haben).</p>", 
-              required: true,
-            }];
-          };
+            return [
+              {
+                prompt:
+                  "<p>Bitte geben sie ihren Teilnahme-Code ein (den Sie bei der ersten Teilnahme an diesem Experiment bekommen haben).</p>",
+                required: true,
+              },
+            ];
+          }
         },
         on_finish: (trial) => {
           const newProps = {
@@ -122,9 +126,10 @@ export function addIntroduction(jsPsych, timeline, options) {
     stimulus: () => {
       return `<iframe class="declaration" src="media/misc/declaration_${globalProps.instructionLanguage}.html"></iframe>`;
     },
-    choices: () => globalProps.instructionLanguage === "en"
-    ? ["I agree with the terms and conditions"]
-    : ["Ich stimme den Versuchsbedingungen zu"],
+    choices: () =>
+      globalProps.instructionLanguage === "en"
+        ? ["I agree with the terms and conditions"]
+        : ["Ich stimme den Versuchsbedingungen zu"],
   });
 
   // Instructions to prepare computer

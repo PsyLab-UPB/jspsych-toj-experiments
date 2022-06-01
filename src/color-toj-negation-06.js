@@ -290,8 +290,6 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     type: WhichFirstTojPlugin,
     modification_function: (element) => WhichFirstTojPlugin.flashElement(element, "toj-flash", 30),
     soa: jsPsych.timelineVariable("soa"),
-    //first_key: () => (globalProps.isAnswerKeySwitchEnabled ? rightKey : leftKey), //leftKey,
-    //second_key: () => (globalProps.isAnswerKeySwitchEnabled ? leftKey : rightKey), //rightKey,
     probe_key: () => (globalProps.isAnswerKeySwitchEnabled ? rightKey : leftKey), //leftKey,
     reference_key: () => (globalProps.isAnswerKeySwitchEnabled ? leftKey : rightKey), //rightKey,
     instruction_negated: jsPsych.timelineVariable("isInstructionNegated"),

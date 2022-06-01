@@ -98,18 +98,22 @@ export function addIntroduction(jsPsych, timeline, options) {
         type: SurveyTextPlugin,
         questions: () => {
           if (globalProps.instructionLanguage === "en") {
-            return [{ 
-              prompt: 
-                "<p>Please enter your participant code (that you got the first time you participated in this experiment).</p>",
-              required: true,
-            }];
+            return [
+              {
+                prompt:
+                  "<p>Please enter your participant code (that you got the first time you participated in this experiment).</p>",
+                required: true,
+              },
+            ];
           } else {
-            return [{ 
-              prompt: 
-                "<p>Bitte geben sie ihren Teilnahme-Code ein (den Sie bei der ersten Teilnahme an diesem Experiment bekommen haben).</p>", 
-              required: true,
-            }];
-          };    
+            return [
+              {
+                prompt:
+                  "<p>Bitte geben sie ihren Teilnahme-Code ein (den Sie bei der ersten Teilnahme an diesem Experiment bekommen haben).</p>",
+                required: true,
+              },
+            ];
+          }
         },
         on_finish: (trial) => {
           const newProps = {
@@ -127,10 +131,10 @@ export function addIntroduction(jsPsych, timeline, options) {
       return `<iframe class="declaration" src="media/misc/declaration_${globalProps.instructionLanguage}.html"></iframe>`;
     },
     choices: () =>
-    globalProps.instructionLanguage === "en"
-      ? ["I agree with the terms and conditions"]
-      : ["Ich stimme den Versuchsbedingungen zu"],
-});
+      globalProps.instructionLanguage === "en"
+        ? ["I agree with the terms and conditions"]
+        : ["Ich stimme den Versuchsbedingungen zu"],
+  });
 
   // Instructions to prepare computer
   // Disable any color temperature changeing software / settings
@@ -179,7 +183,7 @@ export function addIntroduction(jsPsych, timeline, options) {
       globalProps.instructionLanguage === "en"
         ? ["Computer sounds are enabled"]
         : ["Der Ton ist eingeschaltet"],
-    });
+  });
 
   // Participant code announcement / input
   timeline.push({
@@ -277,11 +281,13 @@ export function addIntroduction(jsPsych, timeline, options) {
   timeline.push({
     type: FullscreenPlugin,
     fullscreen_mode: true,
-    message: () => 
+    message: () =>
       globalProps.instructionLanguage === "en"
         ? ["<p>The experiment will switch to full screen mode when you press the button below.</p>"]
-        : ["<p>Das Experiment wechselt in den Vollbild-Modus, sobald Sie die Schaltfläche betätigen.</p>"],
-    button_label: () => 
+        : [
+            "<p>Das Experiment wechselt in den Vollbild-Modus, sobald Sie die Schaltfläche betätigen.</p>",
+          ],
+    button_label: () =>
       globalProps.instructionLanguage === "en"
         ? ["Switch to full screen mode"]
         : ["In Vollbild-Modus wechseln"],

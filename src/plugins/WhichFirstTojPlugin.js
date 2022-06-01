@@ -9,7 +9,6 @@
 
 "use strict";
 
-import delay from "delay";
 import { playAudio } from "../util/audio";
 import { TojPlugin } from "./TojPlugin";
 
@@ -20,18 +19,6 @@ export class WhichFirstTojPlugin extends TojPlugin {
     name: "toj-which_first",
     parameters: {
       ...TojPlugin.info.parameters,
-      // first_key: {
-      //   type: ParameterType.KEY,
-      //   pretty_name: "First key",
-      //   default: undefined,
-      //   description: "The key that the subject uses to give a queried stimulus was first response",
-      // },
-      // second_key: {
-      //   type: ParameterType.KEY,
-      //   pretty_name: "Second key",
-      //   default: undefined,
-      //   description: "The key that the subject uses to give a queried stimulus was second response",
-      // },
       instruction_filename: {
         type: ParameterType.STRING,
         pretty_name: "Instruction filename",
@@ -70,86 +57,6 @@ export class WhichFirstTojPlugin extends TojPlugin {
     await playAudio(audioBaseUrl + (trial.instruction_negated ? "not" : "now") + ".wav");
     await playAudio(audioBaseUrl + trial.instruction_filename + ".wav");
 
-    // if (appendContainer) {
-    //   this._appendContainerToDisplayElement(display_element, trial);
-    // }
-
-    // await delay(trial.fixation_time);
-
-    // // Modify stimulus elements according to SOA
-    // await WhichFirstTojPlugin.doTojModification(
-    //   trial.probe_element,
-    //   trial.reference_element,
-    //   trial.modification_function,
-    //   trial.soa
-    // );
-
-    // let keyboardResponse = {
-    //   rt: null,
-    //   key: null,
-    // };
-
-    //  keyboardResponse = await WhichFirstTojPlugin.getKeyboardResponsePromisified({
-    //    valid_responses: [trial.first_key, trial.second_key],
-    //    rt_method: "performance",
-    //    persist: false,
-    //    allow_held_key: false,
-    //  });
-
-    // // keyboardResponse = this.jsPsych.pluginAPI.getKeyboardResponse({
-    // //   valid_responses: [trial.first_key, trial.second_key],
-    // //   rt_method: "performance",
-    // //   persist: false,
-    // //   allow_held_key: false,
-    // // });
-
-    // // Clear the screen
-    // display_element.innerHTML = "";
-    // //this.resetContainer();
-
-    // // Process the response
-    // let responseKey = this.jsPsych.pluginAPI.convertKeyCodeToKeyCharacter(keyboardResponse.key);
-    // let response = null;
-    // switch (responseKey) {
-    //   case trial.first_key:
-    //     response = "first";
-    //     break;
-    //   case trial.second_key:
-    //     response = "second";
-    //     break;
-    // }
-
-    // the probe is the stimuli that is being instructed to attend. 
-    // Instruction "not red" --> probe is green. Instruction "now red" --> probe is red.
-    //let isProbeFirst = trial.soa < 0;
-    //let correct = isProbeFirst === (response === "first") || trial.soa === 0;
-
-    // const resultData = Object.assign({}, trial, {
-    //   response_key: responseKey,
-    //   response: response,
-    //   response_correct: correct,
-    //   rt: keyboardResponse.rt,
-    // });
-
-    // if (trial.play_feedback) {
-    //   await playAudio(`media/audio/feedback/${correct ? "right" : "wrong"}.wav`);
-    // }
-
-    // // Finish trial and log data
-    // this.jsPsych.finishTrial(resultData);
-    // const modifyDistractorStimuli = async () => {
-    //   await delay(trial.distractor_fixation_time);
-    //   await TojPlugin.doTojModification(
-    //     trial.first_key,
-    //     trial.second_key,
-    //     trial.modification_function,
-    //     trial.distractor_soa
-    //   );
-    // };
-    // await Promise.all([
-    //   super.trial(display_element, trial, on_load, false),
-    //   modifyDistractorStimuli(),
-    // ]);
     await super.trial(display_element, trial, on_load, false);
   }
 }

@@ -155,7 +155,7 @@ export class TojPlugin implements JsPsychPlugin<Info> {
    * @param {number} flashDuration
    */
   static async flashElement(element, flashClass, flashDuration) {
-    element.classList.add(flashClass);  /////////       Debug here ->  Cannot read properties of undefined (reading 'add')
+    element.classList.add(flashClass);
     await delay(flashDuration);
     element.classList.remove(flashClass);
   }
