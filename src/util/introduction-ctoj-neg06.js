@@ -11,6 +11,7 @@ import "jspsych/plugins/jspsych-fullscreen";
 import estimateVsync from "vsync-estimate";
 import { customAlphabet } from "nanoid";
 import marked from "marked";
+import md5 from "md5";
 
 marked.setOptions({ breaks: true });
 
@@ -60,39 +61,77 @@ export function addIntroduction(timeline, options) {
 
   const globalProps = {};
 
-  timeline.push({
-    type: "survey-multi-choice",
-    preamble: `<p>Welcome to the ${options.experimentName} experiment!</p>`,
-    questions: [
-      {
-        prompt: `Is this the first time you participate in this experiment?`,
-        options: ["Yes", "No"],
-        required: true,
+  // language selection
+  // standalone version: ask for language and whether the user is a returning participant
+  if (!options.isAProlificStudy) {
+    timeline.push({
+      type: "survey-multi-choice",
+      preamble: `<p>Welcome to the ${options.experimentName} experiment!</p>`,
+      questions: [
+        {
+          prompt: `Is this the first time you participate in this experiment?`,
+          options: ["Yes", "No"],
+          required: true,
+        },
+        {
+          prompt: `Most parts of this experiment are available in multiple languages. Please select a language.`,
+          options: ["Deutsch", "English"],
+          required: true,
+        },
+      ],
+      on_start: async (trial) => {
+        const rate = await estimateVsync();
+        trial.data.refreshRate = Math.round(rate);
       },
-      {
-        prompt: `Most parts of this experiment are available in multiple languages. Please select a language.`,
-        options: ["Deutsch", "English"],
-        required: true,
+      on_finish: (trial) => {
+        const responses = JSON.parse(trial.responses);
+        const newProps = {
+          isFirstParticipation: responses.Q0 === "Yes",
+          instructionLanguage: responses.Q1 === "Deutsch" ? "de" : "en",
+        };
+        Object.assign(globalProps, newProps);
+        jsPsych.data.addProperties(newProps);
       },
-    ],
-    on_start: async (trial) => {
-      const rate = await estimateVsync();
-      trial.data.refreshRate = Math.round(rate);
-    },
-    on_finish: (trial) => {
-      const responses = JSON.parse(trial.responses);
-      const newProps = {
-        isFirstParticipation: responses.Q0 === "Yes",
-        instructionLanguage: responses.Q1 === "Deutsch" ? "de" : "en",
-      };
-      Object.assign(globalProps, newProps);
-      jsPsych.data.addProperties(newProps);
-    },
-    data: {
-      userAgent: navigator.userAgent,
-    },
-  });
+      data: {
+        userAgent: navigator.userAgent,
+      },
+    });
+  }
+  // prolific: only ask for language
+  else {
+    timeline.push({
+      type: "survey-multi-choice",
+      preamble: `<p>Welcome to the ${options.experimentName} experiment!</p>`,
+      questions: [
+        {
+          name: "language",
+          prompt: `Most parts of this experiment are available in multiple languages. Please select a language.`,
+          options: ["Deutsch", "English"],
+          required: true,
+        },
+      ],
+      on_start: async (trial) => {
+        const rate = await estimateVsync();
+        trial.data.refreshRate = Math.round(rate);
+      },
+      on_finish: (trial) => {
+        const responses = JSON.parse(trial.responses);
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        const newProps = {
+          instructionLanguage: responses.Q0 === "Deutsch" ? "de" : "en",
+          participantCode: md5(urlParams.get('PROLIFIC_PID'))
+        };
+        Object.assign(globalProps, newProps);
+        jsPsych.data.addProperties(newProps);
+      },
+      data: {
+        userAgent: navigator.userAgent,
+      },
+    });
+  }
 
+  // if user is a returning participant: prompt to enter participant code
   timeline.push({
     conditional_function: () => !globalProps.isFirstParticipation && !options.isAProlificStudy,
     timeline: [
@@ -100,18 +139,18 @@ export function addIntroduction(timeline, options) {
         type: "survey-text",
         questions: () => {
           if (globalProps.instructionLanguage === "en") {
-            return [{ 
-              prompt: 
+            return [{
+              prompt:
                 "<p>Please enter your participant code (that you got the first time you participated in this experiment).</p>",
               required: true,
             }];
           } else {
-            return [{ 
-              prompt: 
-                "<p>Bitte geben sie ihren Teilnahme-Code ein (den Sie bei der ersten Teilnahme an diesem Experiment bekommen haben).</p>", 
+            return [{
+              prompt:
+                "<p>Bitte geben sie ihren Teilnahme-Code ein (den Sie bei der ersten Teilnahme an diesem Experiment bekommen haben).</p>",
               required: true,
             }];
-          };    
+          };
         },
         on_finish: (trial) => {
           const responses = JSON.parse(trial.responses);
@@ -125,6 +164,7 @@ export function addIntroduction(timeline, options) {
     ],
   });
 
+  // declaration of consent
   timeline.push({
     type: "html-button-response",
     stimulus: () => {
@@ -134,7 +174,7 @@ export function addIntroduction(timeline, options) {
   });
 
   // Instructions to prepare computer
-  // Disable any color temperature changeing software / settings
+  // Disable any color temperature changing software / settings
   timeline.push({
     type: "html-button-response",
     stimulus: () => {
@@ -181,7 +221,7 @@ export function addIntroduction(timeline, options) {
 
   // Participant code announcement / input
   timeline.push({
-    conditional_function: () => globalProps.isFirstParticipation && !options.isAProlificStudy,
+    conditional_function: () => !options.isAProlificStudy && globalProps.isFirstParticipation,
     timeline: [
       {
         type: "html-button-response",
@@ -215,7 +255,7 @@ export function addIntroduction(timeline, options) {
   // Ask for last participation
   timeline.push({
     conditional_function: () =>
-      options.askForLastParticipation === true && !globalProps.isFirstParticipation,
+      options.askForLastParticipation === true && !options.isAProlificStudy && !globalProps.isFirstParticipation,
     timeline: [
       {
         type: "survey-multi-choice",
@@ -252,9 +292,12 @@ export function addIntroduction(timeline, options) {
 
   // Age prompt
   timeline.push({
-    conditional_function: () => globalProps.isFirstParticipation,
+    conditional_function: () =>
+      (!options.isAProlificStudy && globalProps.isFirstParticipation) ||
+      (options.isAProlificStudy && options.isStartingQuestionnaireEnabled),
     timeline: [
       {
+        name: "age",
         type: "survey-text",
         questions: [{ prompt: "Please enter your age.", required: true }],
       },
@@ -262,6 +305,7 @@ export function addIntroduction(timeline, options) {
         type: "survey-multi-choice",
         questions: [
           {
+            name: "gender",
             prompt: "Please select your gender.",
             options: ["male", "female", "diverse"],
             required: true,
@@ -276,11 +320,11 @@ export function addIntroduction(timeline, options) {
   timeline.push({
     type: "fullscreen",
     fullscreen_mode: true,
-    message: () => 
+    message: () =>
       globalProps.instructionLanguage === "en"
         ? ["<p>The experiment will switch to full screen mode when you press the button below.</p>"]
         : ["<p>Das Experiment wechselt in den Vollbild-Modus, sobald Sie die Schaltfläche betätigen.</p>"],
-    button_label: () => 
+    button_label: () =>
       globalProps.instructionLanguage === "en"
         ? ["Switch to full screen mode"]
         : ["In Vollbild-Modus wechseln"],

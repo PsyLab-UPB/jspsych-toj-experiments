@@ -14,6 +14,7 @@
     "jspsych": "6.2.0",
     "lodash": "4.17.21",
     "marked": "^2.0.3",
+    "md5": "^2.3.0",
     "nanoid": "3.1.23",
     "random-int": "3.0.0",
     "vsync-estimate": "^0.2.0"

@@ -41,12 +41,12 @@ const soaChoices = [-6, -3, -1, 0, 1, 3, 6].map((x) => (x * 16.6667).toFixed(3))
 const soaChoicesTutorial = [-6, -3, 3, 6].map((x) => (x * 16.6667).toFixed(3));
 
 
-const debugmode = true;
+const debugmode = false;
 const IS_A_PROLIFIC_STUDY = true;
 
 // is only relevant if IS_A_PROLIFIC_STUDY evaluates to true
-const IS_STARTING_QUESTIONNAIRE_ENABLED = false;
-const IS_FINAL_QUESTIONNAIRE_ENABLED = true;
+const IS_STARTING_QUESTIONNAIRE_ENABLED = true;
+const IS_FINAL_QUESTIONNAIRE_ENABLED = false;
 
 
 class TojTarget {
@@ -112,7 +112,7 @@ class ConditionGenerator {
     this._previousPositions[identifier] = pos;
     return pos;
   }
-  
+
   static getRandomPrimaryColor() {
     return new LabColor(sample([0, 180]));
   }
@@ -136,7 +136,7 @@ class ConditionGenerator {
       const xRange = target.isLeft ? [3, 5] : [2, 4];
       target.gridPosition = ConditionGenerator.generateRandomPos(xRange, [2, 5]);
     });
-    
+
     targets = { probe, reference, fixationTime: randomInt(300, 500) };
 
     return {
@@ -162,9 +162,16 @@ export function createTimeline() {
   const prolific_session_id = urlParams.get('SESSION_ID')
 
   jsPsych.data.addProperties({
-    prolific_participant_id: prolific_participant_id, 
-    prolific_study_id: prolific_study_id, 
-    prolific_session_id: prolific_session_id})
+    prolific_participant_id: prolific_participant_id,
+    prolific_study_id: prolific_study_id,
+    prolific_session_id: prolific_session_id
+  })
+
+  jsPsych.data.addProperties({
+    is_a_prolific_study: IS_A_PROLIFIC_STUDY,
+    is_starting_questionnaire_enabled: IS_STARTING_QUESTIONNAIRE_ENABLED,
+    is_final_questionnaire_enabled: IS_FINAL_QUESTIONNAIRE_ENABLED,
+  })
 
   const touchAdapterSpace = new TouchAdapter(
     jsPsych.pluginAPI.convertKeyCharacterToKeyCode("space")
@@ -176,7 +183,7 @@ export function createTimeline() {
   const unbindSpaceTouchAdapterFromWindow = () => {
     touchAdapterSpace.unbindFromElement(window);
   };
-  
+
   var showInstructions = function () {
     let participantID = globalProps.participantCode;
     let isAnswerKeySwitchEnabled = participantID.charCodeAt(0) % 2 === 0;
@@ -258,19 +265,20 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     askForLastParticipation: true,
     experimentName: "Color TOJ-N6",
     instructions: showInstructions,
-    isAProlificStudy: IS_A_PROLIFIC_STUDY
+    isAProlificStudy: IS_A_PROLIFIC_STUDY,
+    isStartingQuestionnaireEnabled: IS_STARTING_QUESTIONNAIRE_ENABLED,
   });
 
   // Generate trials
   const factors = {
     isInstructionNegated: [true, false],
-    
+
     soa: soaChoices,
     sequenceLength: [1, 2, 5],
   };
   const factorsTutorial = {
     isInstructionNegated: [true, false],
-    
+
     soa: soaChoicesTutorial,
     sequenceLength: [1, 2, 5],
   };
@@ -280,7 +288,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     sequenceLength: [1, 2],
   };
   const repetitions = 1;
-  
+
   const blocksize = 40;
   const probeLeftIsFactor = true; // if true, it adds an implicit repetition
   const alwaysStayUnderBlockSize = false;
@@ -295,7 +303,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
   if (debugmode) {
     trialData = generateAlternatingSequences(factorsDebug, 1, false, 1, false);
   }
- 
+
 
   let trials = trialData.trials;
   let blockCount = trialData.blockCount;
@@ -343,7 +351,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
 
       trial.fixation_time = cond.fixationTime;
       trial.instruction_language = globalProps.instructionLanguage;
-      
+
       const gridColor = "#777777";
 
       // Create targets and grids
@@ -374,9 +382,9 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
           trial.reference_element = targetElement;
         }
       });
-      if(debugmode){
-        console.log("Probe color: "+ cond.targets.probe.color.toName())
-        console.log("Ref color: "+ cond.targets.reference.color.toName())
+      if (debugmode) {
+        console.log("Probe color: " + cond.targets.probe.color.toName())
+        console.log("Ref color: " + cond.targets.reference.color.toName())
       }
 
       // Set instruction color
@@ -399,7 +407,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
       scaler.destruct();
       touchAdapterLeft.unbindFromAll();
       touchAdapterRight.unbindFromAll();
-      
+
       if (debugmode) {
         console.log(data);
       }
@@ -425,7 +433,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
       document.body.style.cursor = "auto";
     },
   };
-  
+
 
   // Tutorial
   let trialDataTutorial = generateAlternatingSequences(factorsTutorial, 5, true); // generate trials with larger SOAs in tutorial
@@ -450,13 +458,13 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     }
   );
 
-  
+
   // The trials array contains too many items for a block, so we divide the conditions into two
   // blocks. BUT: We cannot easily alternate between the first half and the second half of the
   // trials array in the `experimentTojTimeline` because the timeline_variables property does not
   // take a function. Hence, we manually create all timeline entries instead of using nested
   // timelines. :|
-  
+
   const makeBlockFinishedScreenTrial = (block, blockCount) => ({
     type: "html-keyboard-response",
     choices: () => {
@@ -479,16 +487,16 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
 
   // Questions which appear after the last block if it is the subject's last participation
   const lastParticipationSurvey = {
-    conditional_function: () => globalProps.isLastParticipation === true,
+    conditional_function: () => globalProps.isLastParticipation === true || (IS_A_PROLIFIC_STUDY && IS_FINAL_QUESTIONNAIRE_ENABLED),
     timeline: [
       {
         type: "survey-text",
         questions: () => {
           if (globalProps.instructionLanguage === "en") {
             return [
-              { 
+              {
                 name: "What do you reckon we are investigating? What do you think might be the result of the study?",
-                prompt: "<p>What do you reckon we are investigating? What do you think might be the result of the study?</p>", 
+                prompt: "<p>What do you reckon we are investigating? What do you think might be the result of the study?</p>",
                 required: true,
                 rows: 10,
                 columns: 60,
@@ -496,9 +504,9 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
             ];
           } else {
             return [
-              { 
+              {
                 name: "Haben Sie eine Vermutung, was wir untersuchen und was herauskommen könnte?",
-                prompt: "<p>Haben Sie eine Vermutung, was wir untersuchen und was herauskommen könnte?</p>", 
+                prompt: "<p>Haben Sie eine Vermutung, was wir untersuchen und was herauskommen könnte?</p>",
                 required: true,
                 rows: 10,
                 columns: 60,
@@ -512,16 +520,16 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
         questions: () => {
           if (globalProps.instructionLanguage === "en") {
             return [
-              { 
+              {
                 name: "Please estimate: How often were negations (not red or not green) said in successive trials?",
-                prompt: "<p>Please estimate: How often were negations (\"not red\" or \"not green\") said in successive trials?</p>", 
+                prompt: "<p>Please estimate: How often were negations (\"not red\" or \"not green\") said in successive trials?</p>",
                 required: true,
                 rows: 10,
                 columns: 60,
               },
               {
-                name: "Do these negations follow a pattern?", 
-                prompt: "<p>Do these negations follow a pattern?</p>", 
+                name: "Do these negations follow a pattern?",
+                prompt: "<p>Do these negations follow a pattern?</p>",
                 required: true,
                 rows: 10,
                 columns: 60,
@@ -529,22 +537,22 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
             ];
           } else {
             return [
-              { 
+              {
                 name: "Schätzen Sie: Wie häufig wurden Negationen (nicht rot oder nicht grün) in direkt aufeinanderfolgenden Durchgängen genannt?",
-                prompt: "<p>Schätzen Sie: Wie häufig wurden Negationen (\"nicht rot\" oder \"nicht grün\") in direkt aufeinanderfolgenden Durchgängen genannt?</p>", 
+                prompt: "<p>Schätzen Sie: Wie häufig wurden Negationen (\"nicht rot\" oder \"nicht grün\") in direkt aufeinanderfolgenden Durchgängen genannt?</p>",
                 required: true,
                 rows: 10,
                 columns: 60,
               },
               {
                 name: "Folgen die Negationen einem Muster?",
-                prompt: "<p>Folgen die Negationen einem Muster?</p>", 
+                prompt: "<p>Folgen die Negationen einem Muster?</p>",
                 required: true,
                 rows: 10,
                 columns: 60,
               },
             ];
-          };    
+          };
         },
       },
       {
@@ -552,16 +560,16 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
         questions: () => {
           if (globalProps.instructionLanguage === "en") {
             return [
-              { 
+              {
                 name: "Please estimate: How often were sentences without negation (now red or now green) said in successive trials?",
-                prompt: "<p>Please estimate: How often were sentences without negation (\"now red\" or \"now green\") said in successive trials?</p>", 
+                prompt: "<p>Please estimate: How often were sentences without negation (\"now red\" or \"now green\") said in successive trials?</p>",
                 required: true,
                 rows: 10,
                 columns: 60,
               },
               {
                 name: "Do these sentences follow a pattern?",
-                prompt: "<p>Do these sentences follow a pattern?</p>", 
+                prompt: "<p>Do these sentences follow a pattern?</p>",
                 required: true,
                 rows: 10,
                 columns: 60,
@@ -569,38 +577,38 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
             ];
           } else {
             return [
-              { 
+              {
                 name: "Schätzen Sie: Wie häufig wurden Sätze ohne Negation (jetzt rot oder jetzt grün) in direkt aufeinanderfolgenden Durchgängen genannt?",
-                prompt: "<p>Schätzen Sie: Wie häufig wurden Sätze ohne Negation (\"jetzt rot\" oder \"jetzt grün\") in direkt aufeinanderfolgenden Durchgängen genannt?</p>", 
+                prompt: "<p>Schätzen Sie: Wie häufig wurden Sätze ohne Negation (\"jetzt rot\" oder \"jetzt grün\") in direkt aufeinanderfolgenden Durchgängen genannt?</p>",
                 required: true,
                 rows: 10,
                 columns: 60,
               },
               {
                 name: "Folgen diese Sätze einem Muster?",
-                prompt: "<p>Folgen diese Sätze einem Muster?</p>", 
+                prompt: "<p>Folgen diese Sätze einem Muster?</p>",
                 required: true,
                 rows: 10,
                 columns: 60,
               },
             ];
-          };    
+          };
         },
-      },  
+      },
     ],
   };
-  
+
   const finalScreen = {
     type: "html-keyboard-response",
     choices: jsPsych.ALL_KEYS,
-    stimulus: () =>  
+    stimulus: () =>
       globalProps.instructionLanguage === "en"
         ? ["<h1>This part of the experiment is finished.</h1><p>Thank you for participating. Press any key or touch to submit the results.</p>"]
         : ["<h1>Vielen Dank für Ihre Teilnahme am Experiment!</h1><p>Drücken Sie eine beliebige Taste oder berühren Sie Ihren Touchscreen um die Resultate abzusenden.</p>"],
     on_start: bindSpaceTouchAdapterToWindow,
     on_finish: unbindSpaceTouchAdapterFromWindow,
   }
-  
+
   let timelineVariablesBlock = [];
   let curBlockIndex = 0;
 
