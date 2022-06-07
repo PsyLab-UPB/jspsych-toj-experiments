@@ -205,7 +205,7 @@ export function addIntroduction(timeline, options) {
     timeline: [
       {
         type: "survey-text",
-        questions: [{ prompt: "Please enter your age.", required: true }],
+        questions: [{ prompt: "Please enter your age in years.", required: true }],
       },
       {
         type: "survey-multi-choice",

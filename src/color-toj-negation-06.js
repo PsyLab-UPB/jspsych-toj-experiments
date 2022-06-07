@@ -204,62 +204,65 @@ export function createTimeline() {
     }
 
     let instructionsWithoutKeySwitch = {
-      en: `If it flashed first, press **Q** (or tap on the left half of your screen).
-If it flashed second, press **P** (or tap on the right half of your screen).
+      en: `If it flashed first (i.e., before the other bar), please press **Q** (or tap on the **left-hand half** of your touchscreen).
+If it flashed second (i.e., after the other bar), please press **P** (or tap on the **right-hand half** of your touchscreen).
 
 Please try to be as exact as possible and avoid mistakes.
-If it is not clear to you whether the bar flashed first or second, you may guess the answer.
+If it is not clear to you whether the respective bar flashed first or second, you may guess the answer.
 
-If, for example, there is a green and a red bar and the voice says “not green” you will have to indicate whether the red bar flashed before the green one (i.e. first, response: **Q** or left tap) or after the green one (i.e. second, response **P** or right tap).`,
+Example: If the voice announces “not green” you will have to judge the red bar. Did it flash before the green bar? Then pressing **Q** or a **left-hand tap** is the correct response. Did the red bar flash after the green bar? Then pressing **P** or tapping the **right-hand side** is correct.`,
+
       de: `Hat er zuerst geblinkt (vor dem anderen), drücken Sie **Q** (oder tippen Sie auf die linke Bildschirmhälfte).
-Hat er nach dem anderen, also als zweiter geblinkt, drücken Sie **P** (oder tippen Sie auf die rechte Bildschirmhälfte).
+Hat er nach dem anderen (also als zweiter) geblinkt, drücken Sie **P** (oder tippen Sie auf die rechte Bildschirmhälfte).
 
-Versuchen Sie, genau zu sein und keine Fehler zu machen.
-Wenn Sie nicht wissen, welcher Strich zuerst war, raten Sie.
+Versuchen Sie genau zu sein und keine Fehler zu machen.
+Wenn Sie nicht wissen, welcher Strich zuerst blinkte, raten Sie.
 
-Ein Beispiel: Wenn Sie einen grünen und einen roten Strich sehen und die Stimme „nicht grün“ sagt, müssen Sie den roten Strich beurteilen. Hat er vor dem grünen geblinkt? Dann **Q** drücken oder links tippen. Oder hat er nach dem grünen geblinkt? Dann **P** drücken oder rechts tippen.`,
+Ein Beispiel: Wenn die Stimme „nicht grün“ ansagt, müssen Sie den roten Strich beurteilen. Hat er vor dem grünen geblinkt? Dann ist das Tippen der **Q**-Taste oder auf die linke Bildschirmhälfte korrekt. Hat der rote Strich nach dem grünen geblinkt? Dann ist die **P**-Taste bzw. das Antippen der rechten Bildschirmhälfte korrekt.`,
     };
+
     let instructionsWithKeySwitch = {
-      en: `If it flashed first, press **P** (or tap on the right half of your screen).
-If it flashed second, press **Q** (or tap on the left half of your screen).
+      en: `If it flashed first (i.e., before the other bar), please press **P** (or tap on the **right-hand half** of your touchscreen).
+If it flashed second (i.e., after the other bar), please press **Q** (or tap on the **left-hand half** of your touchscreen).
 
 Please try to be as exact as possible and avoid mistakes.
-If it is not clear to you whether the bar flashed first or second, you may guess the answer.
+If it is not clear to you whether the respective bar flashed first or second, you may guess the answer.
 
-If, for example, there is a green and a red bar and the voice says “not green” you will have to indicate whether the red bar flashed before the green one (i.e. first, response: **P** or right tap) or after the green one (i.e. second, response **Q** or left tap).`,
-      de: `Hat er zuerst geblinkt (vor dem anderen), drücken Sie **P** (oder tippen Sie auf die rechte Bildschirmhälfte).
-Hat er nach dem anderen, also als zweiter geblinkt, drücken Sie **Q** (oder tippen Sie auf die linke Bildschirmhälfte).
+Example: If the voice announces “not green” you will have to judge the red bar. Did it flash before the green bar? Then pressing **P** or **right-hand tap** is the correct response. Did the red bar flash after the green bar? Then pressing **Q** or tapping the **left-hand side** is correct.`,
 
-Versuchen Sie, genau zu sein und keine Fehler zu machen.
-Wenn Sie nicht wissen, welcher Strich zuerst war, raten Sie.
+      de: `Hat er zuerst geblinkt (vor dem anderen), drücken Sie **P** (oder tippen Sie auf die **rechte Bildschirmhälfte**).
+Hat er nach dem anderen (also als zweiter) geblinkt, drücken Sie **Q** (oder tippen Sie auf die **linke Bildschirmhälfte**).
 
-Ein Beispiel: Wenn Sie einen grünen und einen roten Strich sehen und die Stimme „nicht grün“ sagt, müssen Sie den roten Strich beurteilen. Hat er vor dem grünen geblinkt? Dann **P** drücken oder rechts tippen. Oder hat er nach dem grünen geblinkt? Dann **Q** drücken oder links tippen.`,
+Versuchen Sie genau zu sein und keine Fehler zu machen.
+Wenn Sie nicht wissen, welcher Strich zuerst blinkte, raten Sie.
+
+Ein Beispiel: Wenn die Stimme „nicht grün“ ansagt, müssen Sie den roten Strich beurteilen. Hat er vor dem grünen geblinkt? Dann ist das Tippen der **P**-Taste oder auf die **rechte** Bildschirmhälfte korrekt. Hat der rote Strich nach dem grünen geblinkt? Dann ist die **Q**-Taste bzw. das Antippen der **linken** Bildschirmhälfte korrekt.`,
     };
 
     let instructions = {
-      en: `You will see a grid of bars and a point in the middle. Please try to focus the point during the whole experiment.
-Two of the bars are colored (red or green).
+      en: `You will see a grid of bars and a circle in the center. Please try to focus the circle during the whole experiment.
+Two of the bars will be colored (red or green).
 At the beginning of each trial, you will hear an instruction like "now red" or "not green".
-This informs you which of the bars is relevant for the respective trial.
+This informs you which bar is relevant for the respective trial.
 Then, each of the colored bars will flash once.
 Based on this, your task is to decide whether the bar indicated by the instruction flashed first or second.
 
 ${isAnswerKeySwitchEnabled ? instructionsWithKeySwitch.en : instructionsWithoutKeySwitch.en}
 
-The experiment will start with a tutorial of 30 trials in which a sound at the end of each trial will indicate whether your answer was correct or not.
+The experiment will start with a tutorial of 30 trials. After each tutorial trial a sound will indicate whether your answer was correct or not.
 Note that the playback of audio may be delayed for some of the first trials.
       `,
       de: `
-Sie sehen gleich ein Muster aus Strichen und einen Punkt in der Mitte. Schauen sie möglichst während des gesamten Experimentes auf diesen Punkt.
-Zwei dieser Striche sind farbig (je eines rot und grün).
-Am Anfang jedes Durchgangs hören Sie eine Anweisung wie "jetzt rot" oder "nicht grün".
-Diese sagt Ihnen, welcher Strich beurteilt werden soll.
-Anschließend wird jeder der farbigen Striche kurz blinken.
-Ihre Aufgabe ist es, zu entscheiden, ob der in der Instruktion benannte Strich zuerst geblinkt hat oder als zweiter.
+Sie sehen gleich ein Muster aus überwiegend grauen Streifen und einen Kreis in der Mitte. Schauen sie möglichst während des gesamten Experimentes auf diesen Kreis.
+Jeweils ein Streifen rechts und links des mittig platzierten Kreises ist grün bzw. rot.
+Am Anfang jedes Durchgangs hören Sie eine Anweisung wie beispielsweise „jetzt rot“ oder „nicht grün“.
+Diese sagt Ihnen, welcher Streifen beurteilt werden soll.
+Anschließend wird jeder der farbigen Streifen kurz blinken.
+Ihre Aufgabe ist es zu entscheiden, ob der in der Anweisung benannte Streifen vor oder nach dem anderen farbigen Streifen blinkte.
 
 ${isAnswerKeySwitchEnabled ? instructionsWithKeySwitch.de : instructionsWithoutKeySwitch.de}
 
-Das Experiment beginnt mit einem Tutorial von 30 Durchgängen, in dem Ihnen die Korrektheit jeder Antwort durch ein Geräusch rückgemeldet wird.
+Das Experiment beginnt mit einer Übungsrunde von 30 Durchgängen, in dem Ihnen die Korrektheit jeder Antwort durch einen Ton zurückgemeldet wird.
 Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
       `,
     };
