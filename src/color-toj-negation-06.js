@@ -7,7 +7,12 @@
  * - Instruction phase: discouraged use of large screens
  * - introduction.js: Added prompt asking whether this will be a participant's last session. If so: After finishing the last session: Ask participants about their guess about the hypothesis of this study
  * - Depending on the participant code (that is generated randomly initially), half participants get assigned to a version where the answer keys Q (for "first") and P (for "second") are switched. The same participant code results in the same answer key mapping.
- * @version 2.0.1
+ * Accepts participant IDs via URL parameter.
+ * Various flags can be set to bundle experiment sessions with or without starting survey or final survey. This is useful to launch the study on prolific. 
+ * html-keyboard-response trials were replaced by html-button-response as they do not work reliably with iOS devices.
+ * add assertions to check if the study has the correct configuration for use on prolific.co.
+ * survey-multi-choice now also logs the question /queried information along the previously logged sole answer. May break old evaluation scripts.
+ * @version 3.0.2-prolific
  * @imageDir images/common
  * @audioDir audio/color-toj-negation,audio/feedback
  * @miscDir misc
