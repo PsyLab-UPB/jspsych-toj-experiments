@@ -74,6 +74,7 @@ export function addIntroduction(timeline, options) {
           required: true,
         },
         {
+          name: "participant_language",
           prompt: `Most parts of this experiment are available in multiple languages. Please select a language.`,
           options: ["Deutsch", "English"],
           required: true,
@@ -87,7 +88,7 @@ export function addIntroduction(timeline, options) {
         const responses = JSON.parse(trial.responses);
         const newProps = {
           isFirstParticipation: responses.Q0 === "Yes",
-          instructionLanguage: responses.Q1 === "Deutsch" ? "de" : "en",
+          instructionLanguage: responses["participant_language"] === "Deutsch" ? "de" : "en",
         };
         Object.assign(globalProps, newProps);
         jsPsych.data.addProperties(newProps);
@@ -104,7 +105,7 @@ export function addIntroduction(timeline, options) {
       preamble: `<p>Welcome to the ${options.experimentName} experiment!</p>`,
       questions: [
         {
-          name: "language",
+          name: "participant_language",
           prompt: `Most parts of this experiment are available in multiple languages. Please select a language.`,
           options: ["Deutsch", "English"],
           required: true,
@@ -124,7 +125,7 @@ export function addIntroduction(timeline, options) {
           participant_code = "42";
         }
         const newProps = {
-          instructionLanguage: responses.Q0 === "Deutsch" ? "de" : "en",
+          instructionLanguage: responses["participant_language"] === "Deutsch" ? "de" : "en",
           participantCode: md5(participant_code)
         };
         Object.assign(globalProps, newProps);
@@ -302,15 +303,18 @@ export function addIntroduction(timeline, options) {
       (options.isAProlificStudy && options.isStartingQuestionnaireEnabled),
     timeline: [
       {
-        name: "age",
         type: "survey-text",
-        questions: [{ prompt: "Please enter your age.", required: true }],
+        questions: [{
+          name: "participant_age",
+          prompt: "Please enter your age.",
+          required: true
+        }],
       },
       {
         type: "survey-multi-choice",
         questions: [
           {
-            name: "gender",
+            name: "participant_gender",
             prompt: "Please select your gender.",
             options: ["male", "female", "diverse"],
             required: true,
