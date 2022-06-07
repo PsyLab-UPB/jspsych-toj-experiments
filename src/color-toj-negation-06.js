@@ -161,6 +161,12 @@ export function createTimeline() {
   const prolific_study_id = urlParams.get('STUDY_ID')
   const prolific_session_id = urlParams.get('SESSION_ID')
 
+  if (debugmode) {
+    console.log(`prolific_participant_id: ${prolific_participant_id}`);
+    console.log(`prolific_study_id: ${prolific_study_id}`);
+    console.log(`prolific_session_id: ${prolific_session_id}`);
+  }
+
   jsPsych.data.addProperties({
     prolific_participant_id: prolific_participant_id,
     prolific_study_id: prolific_study_id,
@@ -268,6 +274,10 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     isAProlificStudy: IS_A_PROLIFIC_STUDY,
     isStartingQuestionnaireEnabled: IS_STARTING_QUESTIONNAIRE_ENABLED,
   });
+
+  if (debugmode) {
+    console.log(`participantCode: ${globalProps.participantCode}`)
+  }
 
   // Generate trials
   const factors = {

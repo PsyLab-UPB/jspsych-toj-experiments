@@ -118,9 +118,14 @@ export function addIntroduction(timeline, options) {
         const responses = JSON.parse(trial.responses);
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
+        let participant_code = urlParams.get('PROLIFIC_PID');
+        if (participant_code === null) {
+          console.warn("PROLIFIC_PID is null. Set PROLIFIC_PID to `42`.")
+          participant_code = "42";
+        }
         const newProps = {
           instructionLanguage: responses.Q0 === "Deutsch" ? "de" : "en",
-          participantCode: md5(urlParams.get('PROLIFIC_PID'))
+          participantCode: md5(participant_code)
         };
         Object.assign(globalProps, newProps);
         jsPsych.data.addProperties(newProps);
