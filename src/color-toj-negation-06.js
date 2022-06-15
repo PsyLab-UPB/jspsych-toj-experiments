@@ -157,6 +157,21 @@ const rightKey = "p";
 
 export function createTimeline() {
   let timeline = [];
+  timeline.push({
+    type: "call-function",
+    func: function () {
+      if (debugmode) {
+        console.warn("debugmode is enabled.");
+        console.warn(`IS_A_PROLIFIC_STUDY=${IS_A_PROLIFIC_STUDY}`);
+        if (IS_A_PROLIFIC_STUDY & IS_STARTING_QUESTIONNAIRE_ENABLED & IS_FINAL_QUESTIONNAIRE_ENABLED) {
+          console.warn("This is a study optimized for prolific.co. Starting and final questionnaire are enabled. Please ensure that only either of those or neither is enabled if used for prolific in production.");
+        }
+      } else {
+        console.assert(!(IS_A_PROLIFIC_STUDY & IS_STARTING_QUESTIONNAIRE_ENABLED & IS_FINAL_QUESTIONNAIRE_ENABLED),
+          "This is a prolific.co study. Starting and final questionnaire are enabled. Please ensure that only either of those or neither is enabled.");
+      }
+    }
+  });
 
   const queryString = window.location.search;
   const urlParams = new URLSearchParams(queryString);
