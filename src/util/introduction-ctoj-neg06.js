@@ -174,7 +174,7 @@ export function addIntroduction(timeline, options) {
   timeline.push({
     type: "html-button-response",
     stimulus: () => {
-      return `<iframe class="declaration" src="media/misc/declaration_${globalProps.instructionLanguage}.html"></iframe>`;
+      return `<iframe class="declaration" src="media/misc/declaration_color-toj-negation-06_prolific_${globalProps.instructionLanguage}.html"></iframe>`;
     },
     choices: () => (globalProps.instructionLanguage === "en" ? ["I agree with the terms and conditions"] : ["Ich stimme den Versuchsbedingungen zu"]),
   });
