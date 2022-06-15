@@ -12,7 +12,7 @@
  * html-keyboard-response trials were replaced by html-button-response as they do not work reliably with iOS devices.
  * add assertions to check if the study has the correct configuration for use on prolific.co.
  * survey-multi-choice now also logs the question /queried information along the previously logged sole answer. May break old evaluation scripts.
- * @version 3.0.2-prolific
+ * @version 3.0.0-prolific
  * @imageDir images/common
  * @audioDir audio/color-toj-negation,audio/feedback
  * @miscDir misc
