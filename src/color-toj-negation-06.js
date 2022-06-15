@@ -31,7 +31,6 @@ import tojPlugin from "./plugins/jspsych-toj-negation-which_first";
 
 import { generateAlternatingSequences, copy } from "./util/trialGenerator";
 
-import delay from "delay";
 import { sample } from "lodash";
 import randomInt from "random-int";
 
@@ -183,17 +182,6 @@ export function createTimeline() {
     is_starting_questionnaire_enabled: IS_STARTING_QUESTIONNAIRE_ENABLED,
     is_final_questionnaire_enabled: IS_FINAL_QUESTIONNAIRE_ENABLED,
   })
-
-  const touchAdapterSpace = new TouchAdapter(
-    jsPsych.pluginAPI.convertKeyCharacterToKeyCode("space")
-  );
-  const bindSpaceTouchAdapterToWindow = async () => {
-    await delay(500); // Prevent touch event from previous touch
-    touchAdapterSpace.bindToElement(window);
-  };
-  const unbindSpaceTouchAdapterFromWindow = () => {
-    touchAdapterSpace.unbindFromElement(window);
-  };
 
   var showInstructions = function () {
     let participantID = globalProps.participantCode;
@@ -468,14 +456,17 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     },
     cursor_on,
     {
-      type: "html-keyboard-response",
-      choices: [" "],
-      stimulus: "<p>You finished the tutorial.</p><p>Press SPACE key or touch to continue.</p>",
-      on_start: bindSpaceTouchAdapterToWindow,
-      on_finish: unbindSpaceTouchAdapterFromWindow,
+      type: "html-button-response",
+      stimulus: () =>
+        globalProps.instructionLanguage === "en"
+          ? ["<p>You finished the tutorial.</p>"]
+          : ["<p>Sie haben das Tutorial abgeschlossen.</p>"],
+      choices: () =>
+        globalProps.instructionLanguage === "en"
+          ? ["Continue to the experiment"]
+          : ["Weiter zum Experiment"],
     }
   );
-
 
   // The trials array contains too many items for a block, so we divide the conditions into two
   // blocks. BUT: We cannot easily alternate between the first half and the second half of the
@@ -484,23 +475,15 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
   // timelines. :|
 
   const makeBlockFinishedScreenTrial = (block, blockCount) => ({
-    type: "html-keyboard-response",
-    choices: () => {
-      if (block < blockCount) {
-        return [" "];
-      } else {
-        return jsPsych.ALL_KEYS;
-      }
-    },
+    type: "html-button-response",
     stimulus: () => {
       if (block < blockCount) {
-        return `<h1>Pause</h1><p>You finished block ${block} of ${blockCount}.<p/><p>Press SPACE key or touch to continue.</p>`;
+        return `<h1>Pause</h1><p>You finished block ${block} of ${blockCount}.<p/>`;
       } else {
-        return "<p>This part of the experiment is finished.</p><p>Press any key or touch to continue.</p>";
+        return "<p>This part of the experiment is finished.</p>";
       }
     },
-    on_start: bindSpaceTouchAdapterToWindow,
-    on_finish: unbindSpaceTouchAdapterFromWindow,
+    choices: ["Continue"],
   });
 
   // Questions which appear after the last block if it is the subject's last participation
@@ -616,17 +599,6 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     ],
   };
 
-  const finalScreen = {
-    type: "html-keyboard-response",
-    choices: jsPsych.ALL_KEYS,
-    stimulus: () =>
-      globalProps.instructionLanguage === "en"
-        ? ["<h1>This part of the experiment is finished.</h1><p>Thank you for participating. Press any key or touch to submit the results.</p>"]
-        : ["<h1>Vielen Dank für Ihre Teilnahme am Experiment!</h1><p>Drücken Sie eine beliebige Taste oder berühren Sie Ihren Touchscreen um die Resultate abzusenden.</p>"],
-    on_start: bindSpaceTouchAdapterToWindow,
-    on_finish: unbindSpaceTouchAdapterFromWindow,
-  }
-
   let timelineVariablesBlock = [];
   let curBlockIndex = 0;
 
@@ -679,7 +651,19 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
   timeline.push(cursor_on);
 
   timeline.push(lastParticipationSurvey);
-  timeline.push(finalScreen);
+
+  // final screen
+  timeline.push({
+    type: "html-button-response",
+    stimulus: () =>
+      globalProps.instructionLanguage === "en"
+        ? ["<p>Thank you for participating. Continue to submit the results. You will be redirected to prolific.co.</p>"]
+        : ["<p>Vielen Dank für Ihre Teilnahme!</p><p>Fahren Sie fort, um die Resultate abzusenden. Sie werden anschließend zu prolific.co weitergeleitet.</p>"],
+    choices: () =>
+      globalProps.instructionLanguage === "en"
+        ? ["Continue"]
+        : ["Weiter"],
+  });
 
   // Disable fullscreen
   timeline.push({
