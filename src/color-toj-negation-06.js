@@ -12,7 +12,7 @@
  * html-keyboard-response trials were replaced by html-button-response as they do not work reliably with iOS devices.
  * add assertions to check if the study has the correct configuration for use on prolific.co.
  * survey-multi-choice now also logs the question /queried information along the previously logged sole answer. May break old evaluation scripts.
- * @version 3.0.0-prolific
+ * @version 3.0.1-prolific-p1
  * @imageDir images/common
  * @audioDir audio/color-toj-negation,audio/feedback
  * @miscDir misc
@@ -220,8 +220,8 @@ If it is not clear to you whether the respective bar flashed first or second, yo
 
 Example: If the voice announces “not green” you will have to judge the red bar. Did it flash before the green bar? Then pressing **Q** or a **left-hand tap** is the correct response. Did the red bar flash after the green bar? Then pressing **P** or tapping the **right-hand side** is correct.`,
 
-      de: `Hat er zuerst geblinkt (vor dem anderen), drücken Sie **Q** (oder tippen Sie auf die linke Bildschirmhälfte).
-Hat er nach dem anderen (also als zweiter) geblinkt, drücken Sie **P** (oder tippen Sie auf die rechte Bildschirmhälfte).
+      de: `Hat er zuerst geblinkt (vor dem anderen), drücken Sie **Q** (oder tippen Sie auf die **linke Bildschirmhälfte**).
+Hat er nach dem anderen (also als zweiter) geblinkt, drücken Sie **P** (oder tippen Sie auf die **rechte Bildschirmhälfte**).
 
 Versuchen Sie genau zu sein und keine Fehler zu machen.
 Wenn Sie nicht wissen, welcher Strich zuerst blinkte, raten Sie.
