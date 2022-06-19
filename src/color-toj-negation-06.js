@@ -12,7 +12,7 @@
  * html-keyboard-response trials were replaced by html-button-response as they do not work reliably with iOS devices.
  * add assertions to check if the study has the correct configuration for use on prolific.co.
  * survey-multi-choice now also logs the question /queried information along the previously logged sole answer. May break old evaluation scripts.
- * @version 3.0.1-prolific-p1
+ * @version 3.0.2-prolific-p1
  * @imageDir images/common
  * @audioDir audio/color-toj-negation,audio/feedback
  * @miscDir misc
@@ -173,24 +173,32 @@ export function createTimeline() {
     }
   });
 
-  const queryString = window.location.search;
-  const urlParams = new URLSearchParams(queryString);
+  timeline.push({
+    type: "call-function",
+    func: function () {
+      let prolific_participant_id;
+      let prolific_study_id;
+      let prolific_session_id;
 
-  const prolific_participant_id = urlParams.get('PROLIFIC_PID')
-  const prolific_study_id = urlParams.get('STUDY_ID')
-  const prolific_session_id = urlParams.get('SESSION_ID')
-
-  if (debugmode) {
-    console.log(`prolific_participant_id: ${prolific_participant_id}`);
-    console.log(`prolific_study_id: ${prolific_study_id}`);
-    console.log(`prolific_session_id: ${prolific_session_id}`);
-  }
+      if (typeof jatos !== "undefined") {
+        prolific_participant_id = jatos.urlQueryParameters.PROLIFIC_PID;
+        prolific_study_id = jatos.urlQueryParameters.STUDY_ID;
+        prolific_session_id = jatos.urlQueryParameters.SESSION_ID;
 
   jsPsych.data.addProperties({
     prolific_participant_id: prolific_participant_id,
     prolific_study_id: prolific_study_id,
     prolific_session_id: prolific_session_id
   })
+      }
+
+      if (debugmode) {
+        console.log(`prolific_participant_id: ${prolific_participant_id}`);
+        console.log(`prolific_study_id: ${prolific_study_id}`);
+        console.log(`prolific_session_id: ${prolific_session_id}`);
+      }
+    },
+  });
 
   jsPsych.data.addProperties({
     is_a_prolific_study: IS_A_PROLIFIC_STUDY,

@@ -119,7 +119,7 @@ export function addIntroduction(timeline, options) {
         const responses = JSON.parse(trial.responses);
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
-        let participant_code = urlParams.get('PROLIFIC_PID');
+        let participant_code = jatos.urlQueryParameters.PROLIFIC_PID;
         if (participant_code === null) {
           console.warn("PROLIFIC_PID is null. Set PROLIFIC_PID to `42`.")
           participant_code = "42";
