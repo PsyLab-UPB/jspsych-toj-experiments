@@ -201,17 +201,61 @@ export function addIntroduction(timeline, options) {
         : ["Dark mode ist abgeschaltet <br>und mein Bildschirm ist ausreichend klein"],
   });
 
-  // Color vision test
-  timeline.push({
-    type: "html-button-response",
-    stimulus: () => {
-      return `<iframe class="technical-instruction" src="media/misc/technical_instructions_color_vision_${globalProps.instructionLanguage}.html"></iframe>`;
-    },
-    choices: () =>
-      globalProps.instructionLanguage === "en"
-        ? ["I do not have color vision deficiencies"]
-        : ["Ich habe keine Farbsehschwäche"],
-  });
+  if (!options.isAProlificStudy) {
+    // Color vision test
+    timeline.push({
+      type: "html-button-response",
+      stimulus: () => {
+        return `<iframe class="technical-instruction" src="media/misc/technical_instructions_color_vision_${globalProps.instructionLanguage}.html"></iframe>`;
+      },
+      choices: () =>
+        globalProps.instructionLanguage === "en"
+          ? ["I do not have color vision deficiencies"]
+          : ["Ich habe keine Farbsehschwäche"],
+    });
+  } else {
+    timeline.push({
+      type: "survey-multi-choice",
+      questions: () => {
+        let survey_visual_deficiency = {
+          name: "participant_has_color_vision_deficiency",
+          required: true,
+        };
+        if (globalProps.instructionLanguage === "en") {
+          let question = {
+            prompt: `Do you have color vision deficiencies? If you do not know whether you have a color vision deficiency you can check your vision with a <a href="https://visionscreening.zeiss.com/en-US/color-check" target="_blank" rel="noopener noreferrer">Ishihara test</a> (external website).`,
+            options: ["Yes", "No"],
+          };
+          Object.assign(survey_visual_deficiency, question);
+        } else {
+          let question = {
+            prompt: `Haben Sie eine Farb-Fehlsichtigkeit (z.B. Rot-Grün-Sehschwäche)?<br>
+            Falls Sie nicht wissen, ob Sie farbfehlsichtig sind, können Sie dies beispielsweise mit <a href="https://visionscreening.zeiss.com/de-DE/color-check" target="_blank" rel="noopener noreferrer">Ishihara-Tafeln</a> (externer Link) prüfen. `,
+            options: ["Ja", "Nein"],
+          };
+          Object.assign(survey_visual_deficiency, question);
+        }
+        return [survey_visual_deficiency];
+      },
+
+      button_label: () => {
+        if (globalProps.instructionLanguage === "de") {
+          return "Weiter";
+        } else {
+          return "Continue";
+        }
+      },
+
+      on_finish: (trial) => {
+        const responses = JSON.parse(trial.responses);
+        const newProps = {
+          color_vision_deficiency: responses["participant_has_color_vision_deficiency"] === "Yes" || responses["participant_has_color_vision_deficiency"] === "Ja" ? true : false,
+        };
+        Object.assign(globalProps, newProps);
+        jsPsych.data.addProperties(newProps);
+      },
+    });
+  }
 
   // Turn on sound
   timeline.push({

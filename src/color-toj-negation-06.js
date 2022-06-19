@@ -12,7 +12,7 @@
  * html-keyboard-response trials were replaced by html-button-response as they do not work reliably with iOS devices.
  * add assertions to check if the study has the correct configuration for use on prolific.co.
  * survey-multi-choice now also logs the question /queried information along the previously logged sole answer. May break old evaluation scripts.
- * @version 3.0.2-prolific-p1
+ * @version 3.0.3-prolific-p1
  * @imageDir images/common
  * @audioDir audio/color-toj-negation,audio/feedback
  * @miscDir misc
@@ -185,11 +185,11 @@ export function createTimeline() {
         prolific_study_id = jatos.urlQueryParameters.STUDY_ID;
         prolific_session_id = jatos.urlQueryParameters.SESSION_ID;
 
-  jsPsych.data.addProperties({
-    prolific_participant_id: prolific_participant_id,
-    prolific_study_id: prolific_study_id,
-    prolific_session_id: prolific_session_id
-  })
+        jsPsych.data.addProperties({
+          prolific_participant_id: prolific_participant_id,
+          prolific_study_id: prolific_study_id,
+          prolific_session_id: prolific_session_id
+        })
       }
 
       if (debugmode) {
@@ -684,8 +684,8 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
         : ["<p>Vielen Dank für Ihre Teilnahme!</p><p>Fahren Sie fort, um die Resultate abzusenden. Sie werden anschließend zu prolific.co weitergeleitet.</p>"],
     choices: () =>
       globalProps.instructionLanguage === "en"
-        ? ["Continue"]
-        : ["Weiter"],
+        ? ["Submit and continue to prolific.co"]
+        : ["Resultate absenden und zu prolific.co fortfahren"],
   });
 
   // Disable fullscreen
