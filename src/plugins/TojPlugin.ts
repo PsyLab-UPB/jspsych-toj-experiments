@@ -4,7 +4,6 @@ import delay from "delay";
 import { playAudio } from "../util/audio";
 
 import { JsPsych, JsPsychPlugin, ParameterType, TrialType } from "jspsych";
-// @ts-expect-error something's going wrong here (whatever)
 import { omit } from "lodash";
 
 type KeyboardResponse = { rt: number; key: string };
@@ -225,14 +224,14 @@ export class TojPlugin implements JsPsychPlugin<Info> {
   }
 
   async trial(display_element, trial: TrialType<Info>, on_load, standalone = true) {
-    TojPlugin.current = this;
+    TojPlugin.current = <any> this;
 
     if (standalone) {
       this._appendContainerToDisplayElement(display_element, trial);
       on_load();
     }
 
-    await delay(trial.fixation_time);
+    await delay(<number>trial.fixation_time, undefined);
 
     // Modify stimulus elements according to SOA
     await TojPlugin.doTojModification(
