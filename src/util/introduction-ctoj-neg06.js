@@ -124,7 +124,7 @@ export function addIntroduction(jspsych, timeline, options) {
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
         let participant_code = urlParams.get("PROLIFIC_PID");
-        if (participant_code === undefined) {
+        if (participant_code === null) {
           console.warn("PROLIFIC_PID is null. Set PROLIFIC_PID to `42`.")
           participant_code = "42";
         }
