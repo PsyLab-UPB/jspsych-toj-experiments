@@ -13,15 +13,13 @@
 import "../styles/main.scss";
 
 // jsPsych plugins
-import "jspsych/plugins/jspsych-html-keyboard-response";
-import "jspsych/plugins/jspsych-survey-text";
-import "jspsych/plugins/jspsych-html-button-response";
-import "jspsych/plugins/jspsych-survey-text";
-import "jspsych/plugins/jspsych-survey-multi-choice";
-import "jspsych/plugins/jspsych-call-function";
 import delay from "delay";
 import md5 from "md5";
 import { TouchAdapter } from "./util/TouchAdapter";
+import HtmlButtonResponsePlugin from "@jspsych/plugin-html-button-response";
+import SurveyMultiChoicePlugin from "@jspsych/plugin-survey-multi-choice";
+import { initJsPsych } from "jspsych";
+import PreloadPlugin from "@jspsych/plugin-preload";
 
 
 const DEBUGMODE = true;
@@ -29,8 +27,9 @@ const EXPERIMENT_NAME = "Color TOJ-N6"
 const IS_A_PROLIFIC_STUDY = true;
 
 
-export function createTimeline() {
-  let timeline = [];
+export async function run({ assetPaths }) {
+  const jsPsych = initJsPsych();
+  const timeline = [{ type: PreloadPlugin, audio: assetPaths.audio }];
 
   const queryString = window.location.search;
   const urlParams = new URLSearchParams(queryString);
@@ -57,7 +56,7 @@ export function createTimeline() {
 
   const globalProps = {};
   timeline.push({
-    type: "survey-multi-choice",
+    type: SurveyMultiChoicePlugin,
     preamble: `<p>Welcome to the prescreening for ${EXPERIMENT_NAME} experiment!</p>`,
     questions: [
       {
@@ -68,7 +67,7 @@ export function createTimeline() {
       },
     ],
     on_finish: (trial) => {
-      const responses = JSON.parse(trial.responses);
+      const responses = trial.response;
       const queryString = window.location.search;
       const urlParams = new URLSearchParams(queryString);
       let participant_code = urlParams.get('PROLIFIC_PID');
@@ -87,7 +86,7 @@ export function createTimeline() {
 
   // declaration of consent
   timeline.push({
-    type: "html-button-response",
+    type: HtmlButtonResponsePlugin,
     stimulus: () => {
       return `<iframe class="declaration" src="media/misc/declaration_color-vision-survey_${globalProps.instructionLanguage}.html"></iframe>`;
     },
@@ -99,7 +98,7 @@ export function createTimeline() {
   }
 
   timeline.push({
-    type: "survey-multi-choice",
+    type: SurveyMultiChoicePlugin,
     questions: () => {
       let survey_visual_deficiency = {
         name: "participant_has_color_vision_deficiency",
@@ -131,7 +130,7 @@ export function createTimeline() {
     },
 
     on_finish: (trial) => {
-      const responses = JSON.parse(trial.responses);
+      const responses = trial.response;
       const newProps = {
         color_vision_deficiency: responses["participant_has_color_vision_deficiency"] === "Yes" || responses["participant_has_color_vision_deficiency"] === "Ja" ? true : false,
       };
@@ -142,7 +141,7 @@ export function createTimeline() {
 
   // final screen
   timeline.push({
-    type: "html-button-response",
+    type: HtmlButtonResponsePlugin,
     stimulus: () =>
       globalProps.instructionLanguage === "en"
         ? ["<p>Thank you for participating. Continue to submit the results. You will be redirected to prolific.co.</p>"]
@@ -152,6 +151,6 @@ export function createTimeline() {
         ? ["Continue"]
         : ["Weiter"],
   });
-
-  return timeline;
+  await jsPsych.run(timeline);
+  return jsPsych;
 }

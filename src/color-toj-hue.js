@@ -1,7 +1,7 @@
 /**
  * @title Color TOJ Hue
  * @description A TOJ experiment to measure color salience
- * @version 2.0.0
+ * @version 3.0.0
  *
  * @imageDir images/common
  */
@@ -10,13 +10,13 @@
 
 import "../styles/main.scss";
 
-// jsPsych plugins
-import "jspsych/plugins/jspsych-html-keyboard-response";
-import "jspsych/plugins/jspsych-survey-text";
-import "jspsych/plugins/jspsych-fullscreen";
+import { initJsPsych } from "jspsych";
 
-import { TojPlugin } from "./plugins/jspsych-toj";
-import tojPlugin from "./plugins/jspsych-toj";
+import SurveyTextPlugin from "@jspsych/plugin-survey-text";
+import FullscreenPlugin from "@jspsych/plugin-fullscreen";
+import HtmlKeyboardResponsePlugin from "@jspsych/plugin-html-keyboard-response";
+
+import TojPlugin from "./plugins/TojPlugin";
 
 import delay from "delay";
 import sample from "lodash/sample";
@@ -64,38 +64,38 @@ class ConditionGenerator {
   }
 
   generateCondition(probeLeft) {
-    const cond = {};
+    const condition = {};
 
     const [colorDegLeft, colorDegRight] = shuffle([-90, 90]);
-    cond.colorLeft = new LabColor(colorDegLeft);
-    cond.colorRight = new LabColor(colorDegRight);
-    cond.probeColorDegOffset = sample([-60, 60, -120, 120]);
+    condition.colorLeft = new LabColor(colorDegLeft);
+    condition.colorRight = new LabColor(colorDegRight);
+    condition.probeColorDegOffset = sample([-60, 60, -120, 120]);
 
     if (probeLeft) {
-      cond.colorProbe = cond.colorLeft.getRelativeColor(cond.probeColorDegOffset);
-      cond.colorProbeGrid = cond.colorLeft;
-      cond.colorReference = cond.colorRight;
+      condition.colorProbe = condition.colorLeft.getRelativeColor(condition.probeColorDegOffset);
+      condition.colorProbeGrid = condition.colorLeft;
+      condition.colorReference = condition.colorRight;
     } else {
-      cond.colorProbe = cond.colorRight.getRelativeColor(cond.probeColorDegOffset);
-      cond.colorProbeGrid = cond.colorRight;
-      cond.colorReference = cond.colorLeft;
+      condition.colorProbe = condition.colorRight.getRelativeColor(condition.probeColorDegOffset);
+      condition.colorProbeGrid = condition.colorRight;
+      condition.colorReference = condition.colorLeft;
     }
 
-    cond.rotationProbe = this.generateOrientation();
-    cond.rotationReference = this.mirrorOrientation(cond.rotationProbe);
+    condition.rotationProbe = this.generateOrientation();
+    condition.rotationReference = this.mirrorOrientation(condition.rotationProbe);
 
     const posLeft = this.generatePosition("left", [3, 5]);
     const posRight = this.generatePosition("right", [2, 4]);
     if (probeLeft) {
-      cond.posProbe = posLeft;
-      cond.posRef = posRight;
+      condition.posProbe = posLeft;
+      condition.posRef = posRight;
     } else {
-      cond.posProbe = posRight;
-      cond.posRef = posLeft;
+      condition.posProbe = posRight;
+      condition.posRef = posLeft;
     }
 
-    cond.fixationTime = randomInt(30, 75) * 10;
-    return cond;
+    condition.fixationTime = randomInt(30, 75) * 10;
+    return condition;
   }
 }
 
@@ -104,12 +104,11 @@ const conditionGenerator = new ConditionGenerator();
 const leftKey = "q",
   rightKey = "p";
 
-export function createTimeline() {
-  let timeline = [];
+export async function run() {
+  const jsPsych = initJsPsych();
+  const timeline = [];
 
-  const touchAdapterSpace = new TouchAdapter(
-    jsPsych.pluginAPI.convertKeyCharacterToKeyCode("space")
-  );
+  const touchAdapterSpace = new TouchAdapter("space");
   const bindSpaceTouchAdapterToWindow = async () => {
     await delay(500); // Prevent touch event from previous touch
     touchAdapterSpace.bindToElement(window);
@@ -119,7 +118,7 @@ export function createTimeline() {
   };
 
   timeline.push({
-    type: "survey-text",
+    type: SurveyTextPlugin,
     questions: [{ prompt: "Please enter your subject number." }],
     data: {
       userAgent: navigator.userAgent,
@@ -128,13 +127,13 @@ export function createTimeline() {
 
   // Switch to fullscreen
   timeline.push({
-    type: "fullscreen",
+    type: FullscreenPlugin,
     fullscreen_mode: true,
   });
 
   // Instructions
   timeline.push({
-    type: "html-keyboard-response",
+    type: HtmlKeyboardResponsePlugin,
     stimulus:
       "<p>Sie sehen gleich ein Muster aus farbigen Strichen.<br/>" +
       "Zwei sind etwas größer als die anderen und werden kurz blinken.<br/>" +
@@ -156,33 +155,35 @@ export function createTimeline() {
   const repetitions = 2;
   let trials = jsPsych.randomization.factorial(factors, repetitions);
 
-  const touchAdapterLeft = new TouchAdapter(
-    jsPsych.pluginAPI.convertKeyCharacterToKeyCode(leftKey)
-  );
-  const touchAdapterRight = new TouchAdapter(
-    jsPsych.pluginAPI.convertKeyCharacterToKeyCode(rightKey)
-  );
+  const touchAdapterLeft = new TouchAdapter(leftKey);
+  const touchAdapterRight = new TouchAdapter(rightKey);
 
   let scaler; // Will store the Scaler object for the TOJ plugin
 
   // Create TOJ plugin trial object
   const toj = {
-    type: "toj",
+    type: TojPlugin,
     modification_function: (element) => TojPlugin.flashElement(element, "toj-flash", 30),
     soa: jsPsych.timelineVariable("soa"),
-    probe_key: () => (jsPsych.timelineVariable("probeLeft", true) ? leftKey : rightKey),
-    reference_key: () => (jsPsych.timelineVariable("probeLeft", true) ? rightKey : leftKey),
+    probe_key: () => (jsPsych.timelineVariable("probeLeft") ? leftKey : rightKey),
+    reference_key: () => (jsPsych.timelineVariable("probeLeft") ? rightKey : leftKey),
     on_start: (trial) => {
-      const probeLeft = jsPsych.timelineVariable("probeLeft", true);
-      const cond = conditionGenerator.generateCondition(probeLeft);
+      const probeLeft = jsPsych.timelineVariable("probeLeft");
+      const condition = conditionGenerator.generateCondition(probeLeft);
 
       // Log probeLeft and condition
       trial.data = {
         probeLeft,
-        condition: cond,
+        condition,
       };
 
-      trial.fixation_time = cond.fixationTime;
+      trial.fixation_time = condition.fixationTime;
+    },
+    on_load: () => {
+      const trial = jsPsych.getCurrentTrial();
+      const { condition, probeLeft } = trial.data;
+
+      const plugin = TojPlugin.current;
 
       const gridSize = [ConditionGenerator.gridSize, ConditionGenerator.gridSize];
       const targetScaleFactor = 1;
@@ -191,40 +192,38 @@ export function createTimeline() {
 
       const [probeGrid, probeTarget] = createBarStimulusGrid(
         gridSize,
-        cond.posProbe,
-        cond.colorProbe.toRgb(),
-        cond.colorProbeGrid.toRgb(),
+        condition.posProbe,
+        condition.colorProbe.toRgb(),
+        condition.colorProbeGrid.toRgb(),
         targetScaleFactor,
         distractorScaleFactor,
         distractorScaleFactorSD,
-        cond.rotationProbe
+        condition.rotationProbe
       );
       const [referenceGrid, referenceTarget] = createBarStimulusGrid(
         gridSize,
-        cond.posRef,
-        cond.colorReference.toRgb(),
-        cond.colorReference.toRgb(),
+        condition.posRef,
+        condition.colorReference.toRgb(),
+        condition.colorReference.toRgb(),
         targetScaleFactor,
         distractorScaleFactor,
         distractorScaleFactorSD,
-        cond.rotationReference
+        condition.rotationReference
       );
 
       trial.probe_element = probeTarget;
       trial.reference_element = referenceTarget;
+      trial.probe_touch_element = probeGrid;
+      trial.reference_touch_element = referenceGrid;
 
-      touchAdapterLeft.bindToElement(probeLeft ? probeGrid : referenceGrid);
-      touchAdapterRight.bindToElement(probeLeft ? referenceGrid : probeGrid);
-
-      tojPlugin.appendElement(probeGrid);
-      tojPlugin.appendElement(referenceGrid);
+      plugin.appendElement(probeGrid);
+      plugin.appendElement(referenceGrid);
       setAbsolutePosition(probeGrid, (probeLeft ? -1 : 1) * 140);
       setAbsolutePosition(referenceGrid, (probeLeft ? 1 : -1) * 140);
-    },
-    on_load: () => {
+
       // Fit to window size
       scaler = new Scaler(
-        document.getElementById("jspsych-toj-container"),
+        plugin.container,
         ConditionGenerator.gridSize * 40 * 2,
         ConditionGenerator.gridSize * 40,
         10
@@ -260,17 +259,17 @@ export function createTimeline() {
   };
 
   const tutorialFinishedScreen = {
-    type: "html-keyboard-response",
+    type: HtmlKeyboardResponsePlugin,
     stimulus: "<p>You finished the tutorial.</p><p>Press any key to continue.</p>",
     on_start: bindSpaceTouchAdapterToWindow,
     on_finish: unbindSpaceTouchAdapterFromWindow,
   };
 
   const blockFinishedScreen = {
-    type: "html-keyboard-response",
+    type: HtmlKeyboardResponsePlugin,
     stimulus: () => {
-      const block = jsPsych.timelineVariable("block", true);
-      const blockCount = jsPsych.timelineVariable("blockCount", true);
+      const block = jsPsych.timelineVariable("block");
+      const blockCount = jsPsych.timelineVariable("blockCount");
       if (block < blockCount) {
         return `<p>You finished block ${block} of ${blockCount}.<p/><p>Press any key to continue.</p>`;
       } else {
@@ -290,5 +289,6 @@ export function createTimeline() {
     timeline_variables: Array.from(blockGenerator(5)),
   });
 
-  return timeline;
+  await jsPsych.run(timeline);
+  return jsPsych;
 }

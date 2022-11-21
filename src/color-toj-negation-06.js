@@ -23,9 +23,6 @@
 import "../styles/main.scss";
 
 // jsPsych plugins
-import "jspsych/plugins/jspsych-html-keyboard-response";
-import "jspsych/plugins/jspsych-survey-text";
-import "jspsych/plugins/jspsych-call-function";
 import { TojPluginWhichFirst } from "./plugins/jspsych-toj-negation-which_first";
 import tojPlugin from "./plugins/jspsych-toj-negation-which_first";
 
@@ -40,6 +37,13 @@ import { createBarStimulusGrid } from "./util/barStimuli";
 import { setAbsolutePosition } from "./util/positioning";
 import { LabColor } from "./util/colors";
 import { addIntroduction } from "./util/introduction-ctoj-neg06";
+import CallFunctionPlugin from "@jspsych/plugin-call-function";
+import SurveyTextPlugin from "@jspsych/plugin-survey-text";
+import FullscreenPlugin from "@jspsych/plugin-fullscreen";
+import { initJsPsych } from "jspsych";
+import PreloadPlugin from "@jspsych/plugin-preload";
+import HtmlButtonResponsePlugin from "@jspsych/plugin-html-button-response";
+import TojPlugin from "./plugins/TojPlugin";
 
 const soaChoices = [-6, -3, -1, 0, 1, 3, 6].map((x) => (x * 16.6667).toFixed(3));
 const soaChoicesTutorial = [-6, -3, 3, 6].map((x) => (x * 16.6667).toFixed(3));
@@ -155,10 +159,11 @@ const conditionGenerator = new ConditionGenerator();
 const leftKey = "q";
 const rightKey = "p";
 
-export function createTimeline() {
-  let timeline = [];
+export async function run({ assetPaths }) {
+  const jsPsych = initJsPsych();
+  const timeline = [{ type: PreloadPlugin, audio: assetPaths.audio }];
   timeline.push({
-    type: "call-function",
+    type: CallFunctionPlugin,
     func: function () {
       if (debugmode) {
         console.warn("debugmode is enabled.");
@@ -174,7 +179,7 @@ export function createTimeline() {
   });
 
   timeline.push({
-    type: "call-function",
+    type: CallFunctionPlugin,
     func: function () {
       let prolific_participant_id;
       let prolific_study_id;
@@ -206,12 +211,12 @@ export function createTimeline() {
     is_final_questionnaire_enabled: IS_FINAL_QUESTIONNAIRE_ENABLED,
   })
 
-  var showInstructions = function () {
+  var showInstructions = function (jspsych) {
     let participantID = globalProps.participantCode;
     let isAnswerKeySwitchEnabled = participantID.charCodeAt(0) % 2 === 0;
 
     Object.assign(globalProps, { isAnswerKeySwitchEnabled: isAnswerKeySwitchEnabled });
-    jsPsych.data.addProperties({ isAnswerKeySwitchEnabled: isAnswerKeySwitchEnabled });
+    jspsych.data.addProperties({ isAnswerKeySwitchEnabled: isAnswerKeySwitchEnabled });
 
     if (debugmode) {
       console.log(`participantID=${globalProps.participantCode}`);
@@ -285,11 +290,11 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     return globalProps.instructionLanguage === "en" ? instructions.en : instructions.de;
   };
 
-  const globalProps = addIntroduction(timeline, {
+  const globalProps = addIntroduction(jsPsych,timeline, {
     skip: false,
     askForLastParticipation: true,
     experimentName: "Color TOJ-N6",
-    instructions: showInstructions,
+    instructions: () => showInstructions(jsPsych),
     isAProlificStudy: IS_A_PROLIFIC_STUDY,
     isStartingQuestionnaireEnabled: IS_STARTING_QUESTIONNAIRE_ENABLED,
   });
@@ -322,6 +327,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
   const probeLeftIsFactor = true; // if true, it adds an implicit repetition
   const alwaysStayUnderBlockSize = false;
   let trialData = generateAlternatingSequences(
+    jsPsych,
     factors,
     repetitions,
     probeLeftIsFactor,
@@ -330,25 +336,21 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
   );
 
   if (debugmode) {
-    trialData = generateAlternatingSequences(factorsDebug, 1, false, 1, false);
+    trialData = generateAlternatingSequences(jsPsych,factorsDebug, 1, false, 1, false);
   }
 
 
   let trials = trialData.trials;
   let blockCount = trialData.blockCount;
 
-  const touchAdapterLeft = new TouchAdapter(
-    jsPsych.pluginAPI.convertKeyCharacterToKeyCode(leftKey)
-  );
-  const touchAdapterRight = new TouchAdapter(
-    jsPsych.pluginAPI.convertKeyCharacterToKeyCode(rightKey)
-  );
+  const touchAdapterLeft = new TouchAdapter(leftKey);
+  const touchAdapterRight = new TouchAdapter(rightKey);
 
   let scaler; // Will store the Scaler object for the TOJ plugin
 
   // Create TOJ plugin trial object
   const toj = {
-    type: "toj-which_first",
+    type: TojPluginWhichFirst,
     modification_function: (element) => TojPluginWhichFirst.flashElement(element, "toj-flash", 30),
     soa: jsPsych.timelineVariable("soa"),
     first_key: () => (globalProps.isAnswerKeySwitchEnabled ? rightKey : leftKey), //leftKey,
@@ -381,10 +383,23 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
       trial.fixation_time = cond.fixationTime;
       trial.instruction_language = globalProps.instructionLanguage;
 
+      // Set instruction color
+      trial.instruction_filename = (trial.instruction_negated
+        ? cond.targets.reference
+        : cond.targets.probe
+      ).color.toName();
+
+    },
+    on_load: async () => {
+      const trial = jsPsych.getCurrentTrial();
+      const { condition } = trial.data;
+
+      const plugin = TojPlugin.current;
+
       const gridColor = "#777777";
 
       // Create targets and grids
-      [cond.targets.probe, cond.targets.reference].map((target) => {
+      [condition.targets.probe, condition.targets.reference].map((target) => {
         const [gridElement, targetElement] = createBarStimulusGrid(
           ConditionGenerator.gridSize,
           target.gridPosition,
@@ -393,9 +408,9 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
           1,
           0.7,
           0.1,
-          cond.rotation
+          condition.rotation
         );
-        tojPlugin.appendElement(gridElement);
+        plugin.appendElement(gridElement);
         (target.isLeft ? touchAdapterLeft : touchAdapterRight).bindToElement(gridElement);
 
         setAbsolutePosition(
@@ -412,18 +427,9 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
         }
       });
       if (debugmode) {
-        console.log("Probe color: " + cond.targets.probe.color.toName())
-        console.log("Ref color: " + cond.targets.reference.color.toName())
+        console.log("Probe color: " + condition.targets.probe.color.toName())
+        console.log("Ref color: " + condition.targets.reference.color.toName())
       }
-
-      // Set instruction color
-      trial.instruction_filename = (trial.instruction_negated
-        ? cond.targets.reference
-        : cond.targets.probe
-      ).color.toName();
-
-    },
-    on_load: async () => {
       // Fit to window size
       scaler = new Scaler(
         document.getElementById("jspsych-toj-container"),
@@ -450,14 +456,14 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
   };
 
   const cursor_off = {
-    type: "call-function",
+    type: CallFunctionPlugin,
     func: function () {
       document.body.style.cursor = "none";
     },
   };
 
   const cursor_on = {
-    type: "call-function",
+    type: CallFunctionPlugin,
     func: function () {
       document.body.style.cursor = "auto";
     },
@@ -465,7 +471,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
 
 
   // Tutorial
-  let trialDataTutorial = generateAlternatingSequences(factorsTutorial, 5, true); // generate trials with larger SOAs in tutorial
+  let trialDataTutorial = generateAlternatingSequences(jsPsych,factorsTutorial, 5, true); // generate trials with larger SOAs in tutorial
 
   let trialsTutorial = trialDataTutorial.trials.slice(0, debugmode ? 10 : 30);
   //let trialsTutorial = trials.slicetrials.slice(0, debugmode ? 10 : 30); // or duplicate trials that are actually used
@@ -479,7 +485,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     },
     cursor_on,
     {
-      type: "html-button-response",
+      type: HtmlButtonResponsePlugin,
       stimulus: () =>
         globalProps.instructionLanguage === "en"
           ? ["<p>You finished the tutorial.</p>"]
@@ -498,7 +504,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
   // timelines. :|
 
   const makeBlockFinishedScreenTrial = (block, blockCount) => ({
-    type: "html-button-response",
+    type: HtmlButtonResponsePlugin,
     stimulus: () => {
       if (block < blockCount) {
         return `<h1>Pause</h1><p>You finished block ${block} of ${blockCount}.<p/>`;
@@ -514,7 +520,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     conditional_function: () => globalProps.isLastParticipation === true || (IS_A_PROLIFIC_STUDY && IS_FINAL_QUESTIONNAIRE_ENABLED),
     timeline: [
       {
-        type: "survey-text",
+        type: SurveyTextPlugin,
         questions: () => {
           if (globalProps.instructionLanguage === "en") {
             return [
@@ -540,7 +546,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
         },
       },
       {
-        type: "survey-text",
+        type: SurveyTextPlugin,
         questions: () => {
           if (globalProps.instructionLanguage === "en") {
             return [
@@ -580,7 +586,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
         },
       },
       {
-        type: "survey-text",
+        type: SurveyTextPlugin,
         questions: () => {
           if (globalProps.instructionLanguage === "en") {
             return [
@@ -677,7 +683,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
 
   // final screen
   timeline.push({
-    type: "html-button-response",
+    type: HtmlButtonResponsePlugin,
     stimulus: () =>
       globalProps.instructionLanguage === "en"
         ? ["<p>Thank you for participating. Continue to submit the results. You will be redirected to prolific.co.</p>"]
@@ -690,11 +696,11 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
 
   // Disable fullscreen
   timeline.push({
-    type: "fullscreen",
+    type: FullscreenPlugin,
     fullscreen_mode: false,
   });
-
-  return timeline;
+  await jsPsych.run(timeline);
+  return jsPsych;
 }
 
 function debugPrint(trialVars, factors) {

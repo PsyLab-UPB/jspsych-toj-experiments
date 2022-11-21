@@ -3,15 +3,19 @@
  */
 
 // jsPsych plugins
-import "jspsych/plugins/jspsych-html-button-response";
+/*import "jspsych/plugins/jspsych-html-button-response";
 import "jspsych/plugins/jspsych-survey-text";
 import "jspsych/plugins/jspsych-survey-multi-choice";
-import "jspsych/plugins/jspsych-fullscreen";
+import "jspsych/plugins/jspsych-fullscreen";*/
 
 import estimateVsync from "vsync-estimate";
 import { customAlphabet } from "nanoid";
 import marked from "marked";
 import md5 from "md5";
+import SurveyMultiChoicePlugin from "@jspsych/plugin-survey-multi-choice";
+import SurveyTextPlugin from "@jspsych/plugin-survey-text";
+import HtmlButtonResponsePlugin from "@jspsych/plugin-html-button-response";
+import FullscreenPlugin from "@jspsych/plugin-fullscreen";
 
 marked.setOptions({ breaks: true });
 
@@ -49,7 +53,7 @@ marked.setOptions({ breaks: true });
  *  participantCode: string;
  * }}
  */
-export function addIntroduction(timeline, options) {
+export function addIntroduction(jspsych, timeline, options) {
   if (options.skip) {
     return {
       instructionLanguage: "en",
@@ -65,7 +69,7 @@ export function addIntroduction(timeline, options) {
   // standalone version: ask for language and whether the user is a returning participant
   if (!options.isAProlificStudy) {
     timeline.push({
-      type: "survey-multi-choice",
+      type: SurveyMultiChoicePlugin,
       preamble: `<p>Welcome to the ${options.experimentName} experiment!</p>`,
       questions: [
         {
@@ -85,13 +89,13 @@ export function addIntroduction(timeline, options) {
         trial.data.refreshRate = Math.round(rate);
       },
       on_finish: (trial) => {
-        const responses = JSON.parse(trial.responses);
+        const responses = trial.response;
         const newProps = {
           isFirstParticipation: responses.Q0 === "Yes",
           instructionLanguage: responses["participant_language"] === "Deutsch" ? "de" : "en",
         };
         Object.assign(globalProps, newProps);
-        jsPsych.data.addProperties(newProps);
+        jspsych.data.addProperties(newProps);
       },
       data: {
         userAgent: navigator.userAgent,
@@ -101,7 +105,7 @@ export function addIntroduction(timeline, options) {
   // prolific: only ask for language
   else {
     timeline.push({
-      type: "survey-multi-choice",
+      type: SurveyMultiChoicePlugin,
       preamble: `<p>Welcome to the ${options.experimentName} experiment!</p>`,
       questions: [
         {
@@ -116,10 +120,10 @@ export function addIntroduction(timeline, options) {
         trial.data.refreshRate = Math.round(rate);
       },
       on_finish: (trial) => {
-        const responses = JSON.parse(trial.responses);
+        const responses = trial.response;
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
-        let participant_code = jatos.urlQueryParameters.PROLIFIC_PID;
+        let participant_code = urlParams.get("PROLIFIC_PID");
         if (participant_code === null) {
           console.warn("PROLIFIC_PID is null. Set PROLIFIC_PID to `42`.")
           participant_code = "42";
@@ -129,7 +133,7 @@ export function addIntroduction(timeline, options) {
           participantCode: md5(participant_code)
         };
         Object.assign(globalProps, newProps);
-        jsPsych.data.addProperties(newProps);
+        jspsych.data.addProperties(newProps);
       },
       data: {
         userAgent: navigator.userAgent,
@@ -142,7 +146,7 @@ export function addIntroduction(timeline, options) {
     conditional_function: () => !globalProps.isFirstParticipation && !options.isAProlificStudy,
     timeline: [
       {
-        type: "survey-text",
+        type: SurveyTextPlugin,
         questions: () => {
           if (globalProps.instructionLanguage === "en") {
             return [{
@@ -159,12 +163,12 @@ export function addIntroduction(timeline, options) {
           };
         },
         on_finish: (trial) => {
-          const responses = JSON.parse(trial.responses);
+          const responses = trial.response;
           const newProps = {
             participantCode: responses.Q0,
           };
           Object.assign(globalProps, newProps);
-          jsPsych.data.addProperties(newProps);
+          jspsych.data.addProperties(newProps);
         },
       },
     ],
@@ -172,7 +176,7 @@ export function addIntroduction(timeline, options) {
 
   // declaration of consent
   timeline.push({
-    type: "html-button-response",
+    type: HtmlButtonResponsePlugin,
     stimulus: () => {
       return `<iframe class="declaration" src="media/misc/declaration_color-toj-negation-06_prolific_${globalProps.instructionLanguage}.html"></iframe>`;
     },
@@ -182,7 +186,7 @@ export function addIntroduction(timeline, options) {
   // Instructions to prepare computer
   // Disable any color temperature changing software / settings
   timeline.push({
-    type: "html-button-response",
+    type: HtmlButtonResponsePlugin,
     stimulus: () => {
       return `<iframe class="technical-instruction" src="media/misc/technical_instructions_color_temperature_${globalProps.instructionLanguage}.html"></iframe>`;
     },
@@ -191,7 +195,7 @@ export function addIntroduction(timeline, options) {
 
   // Disable dark reader
   timeline.push({
-    type: "html-button-response",
+    type: HtmlButtonResponsePlugin,
     stimulus: () => {
       return `<iframe class="technical-instruction" src="media/misc/technical_instructions_dark_reader_${globalProps.instructionLanguage}.html"></iframe>`;
     },
@@ -204,7 +208,7 @@ export function addIntroduction(timeline, options) {
   if (!options.isAProlificStudy) {
     // Color vision test
     timeline.push({
-      type: "html-button-response",
+      type: HtmlButtonResponsePlugin,
       stimulus: () => {
         return `<iframe class="technical-instruction" src="media/misc/technical_instructions_color_vision_${globalProps.instructionLanguage}.html"></iframe>`;
       },
@@ -215,7 +219,7 @@ export function addIntroduction(timeline, options) {
     });
   } else {
     timeline.push({
-      type: "survey-multi-choice",
+      type: SurveyMultiChoicePlugin,
       questions: () => {
         let survey_visual_deficiency = {
           name: "participant_has_color_vision_deficiency",
@@ -247,19 +251,19 @@ export function addIntroduction(timeline, options) {
       },
 
       on_finish: (trial) => {
-        const responses = JSON.parse(trial.responses);
+        const responses = trial.response;
         const newProps = {
           color_vision_deficiency: responses["participant_has_color_vision_deficiency"] === "Yes" || responses["participant_has_color_vision_deficiency"] === "Ja" ? true : false,
         };
         Object.assign(globalProps, newProps);
-        jsPsych.data.addProperties(newProps);
+        jspsych.data.addProperties(newProps);
       },
     });
   }
 
   // Turn on sound
   timeline.push({
-    type: "html-button-response",
+    type: HtmlButtonResponsePlugin,
     stimulus: () => {
       return `<iframe class="technical-instruction" src="media/misc/technical_instructions_sound_${globalProps.instructionLanguage}.html"></iframe>`;
     },
@@ -274,13 +278,13 @@ export function addIntroduction(timeline, options) {
     conditional_function: () => !options.isAProlificStudy && globalProps.isFirstParticipation,
     timeline: [
       {
-        type: "html-button-response",
+        type: HtmlButtonResponsePlugin,
         stimulus: () => {
           const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ123456789", 4);
           const participantCode = nanoid();
           const newProps = { participantCode };
           Object.assign(globalProps, newProps);
-          jsPsych.data.addProperties(newProps);
+          jspsych.data.addProperties(newProps);
 
           if (globalProps.instructionLanguage === "en") {
             return (
@@ -308,7 +312,7 @@ export function addIntroduction(timeline, options) {
       options.askForLastParticipation === true && !options.isAProlificStudy && !globalProps.isFirstParticipation,
     timeline: [
       {
-        type: "survey-multi-choice",
+        type: SurveyMultiChoicePlugin,
         questions: () => {
           if (globalProps.instructionLanguage === "en") {
             return [
@@ -329,12 +333,12 @@ export function addIntroduction(timeline, options) {
           }
         },
         on_finish: (trial) => {
-          const responses = JSON.parse(trial.responses);
+          const responses = trial.response;
           const newProps = {
             isLastParticipation: responses.Q0 === "Yes" || responses.Q0 === "Ja",
           };
           Object.assign(globalProps, newProps);
-          jsPsych.data.addProperties(newProps);
+          jspsych.data.addProperties(newProps);
         },
       },
     ],
@@ -347,7 +351,7 @@ export function addIntroduction(timeline, options) {
       (options.isAProlificStudy && options.isStartingQuestionnaireEnabled),
     timeline: [
       {
-        type: "survey-text",
+        type: SurveyTextPlugin,
         questions: [{
           name: "participant_age",
           prompt: "Please enter your age.",
@@ -355,7 +359,7 @@ export function addIntroduction(timeline, options) {
         }],
       },
       {
-        type: "survey-multi-choice",
+        type: SurveyMultiChoicePlugin,
         questions: [
           {
             name: "participant_gender",
@@ -371,7 +375,7 @@ export function addIntroduction(timeline, options) {
 
   // Switch to fullscreen
   timeline.push({
-    type: "fullscreen",
+    type: FullscreenPlugin,
     fullscreen_mode: true,
     message: () =>
       globalProps.instructionLanguage === "en"
@@ -385,7 +389,7 @@ export function addIntroduction(timeline, options) {
 
   // Instructions
   timeline.push({
-    type: "html-button-response",
+    type: HtmlButtonResponsePlugin,
     stimulus: () => marked(options.instructions()),
     choices: () =>
       globalProps.instructionLanguage === "en"

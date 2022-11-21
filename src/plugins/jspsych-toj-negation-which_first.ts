@@ -10,65 +10,82 @@
 "use strict";
 
 import delay from "delay";
+import { ParameterType } from "jspsych";
 import { playAudio } from "../util/audio";
-import { TojPlugin } from "./jspsych-toj";
+import { TojPlugin } from "./TojPlugin";
+
+enum TargetType {
+  FIRST = "first",
+  SECOND = "second"
+}
+
 
 export class TojPluginWhichFirst extends TojPlugin {
-  info = {
+
+  static info = <any> {
     name: "toj-which_first",
     parameters: {
-      ...this.info.parameters,
+      ...TojPlugin.info.parameters,
       first_key: {
-        type: jsPsych.plugins.parameterType.KEYCODE,
+        type: ParameterType.KEY,
         pretty_name: "First key",
         default: undefined,
         description: "The key that the subject uses to give a queried stimulus was first response",
       },
       second_key: {
-        type: jsPsych.plugins.parameterType.KEYCODE,
+        type: ParameterType.KEY,
         pretty_name: "Second key",
         default: undefined,
         description: "The key that the subject uses to give a queried stimulus was second response",
       },
+      first_touch_element: {
+        type: ParameterType.OBJECT,
+        pretty_name: "touch element first",
+        default: null,
+      },
+      second_touch_element: {
+        type: ParameterType.OBJECT,
+        pretty_name: "touch element second",
+        default: null,
+      },
       instruction_filename: {
-        type: jsPsych.plugins.parameterType.STRING,
+        type: ParameterType.STRING,
         pretty_name: "Instruction filename",
         default: null,
         description: "The filename (basename only) of the property to be used in the instruction",
       },
       instruction_negated: {
-        type: jsPsych.plugins.parameterType.STRING,
+        type: ParameterType.STRING,
         pretty_name: "Instruction negated",
         default: null,
         description: "Whether the instruction is negated or not",
       },
       instruction_language: {
-        type: jsPsych.plugins.parameterType.STRING,
+        type: ParameterType.STRING,
         pretty_name: "Instruction language",
         default: null,
         description: "The language ('en' or 'de') of the instruction",
       },
       instruction_voice: {
-        type: jsPsych.plugins.parameterType.STRING,
+        type: ParameterType.STRING,
         pretty_name: "Instruction voice",
         default: null,
         description: "The voice of the instruction ('m' or 'f')",
       },
     },
-  };
+  }
 
-  async trial(display_element, trial, appendContainer = true) {
+  async trial(display_element, trial, on_load) {
+    TojPlugin.current = <any> this;
 
-    this.appendContainer(display_element, trial);
+    this._appendContainerToDisplayElement(display_element, trial);
+    on_load();
 
     // Play instruction
     const audioBaseUrl = `media/audio/color-toj-negation/${trial.instruction_language}/${trial.instruction_voice}/`;
     await playAudio(audioBaseUrl + (trial.instruction_negated ? "not" : "now") + ".wav");
     await playAudio(audioBaseUrl + trial.instruction_filename + ".wav");
 
-    if (appendContainer) {
-      this.appendContainer(display_element, trial);
-    }
 
     await delay(trial.fixation_time);
 
@@ -80,44 +97,50 @@ export class TojPluginWhichFirst extends TojPlugin {
       trial.soa
     );
 
-    let keyboardResponse = {
-      rt: null,
-      key: null,
-    };
+    const responseStartTime = performance.now();
 
-    keyboardResponse = await TojPluginWhichFirst.getKeyboardResponsePromised({
-      valid_responses: [trial.first_key, trial.second_key],
-      rt_method: "performance",
-      persist: false,
-      allow_held_key: false,
+    const probeTouched = new Promise<TargetType>((resolve) => {
+      (trial.first_touch_element as HTMLElement)?.addEventListener("touchstart", () => {
+        resolve(TargetType.FIRST);
+      });
     });
+
+    const referenceTouched = new Promise<TargetType>((resolve) => {
+      (trial.second_touch_element as HTMLElement)?.addEventListener("touchstart", () => {
+        resolve(TargetType.SECOND);
+      });
+    });
+
+    const response = await Promise.race([
+      this.getKeyboardResponsePromisified({
+        valid_responses: [trial.first_key, trial.second_key],
+        rt_method: "performance",
+        persist: false,
+        allow_held_key: false,
+      }).then((result) => {
+        return Promise.resolve(
+          result.key === trial.first_key ? TargetType.FIRST : TargetType.SECOND
+        );
+      }),
+      probeTouched,
+      referenceTouched,
+    ]);
+
+    const responseEndTime = performance.now();
 
     // Clear the screen
     display_element.innerHTML = "";
-    this.resetContainer();
-
-    // Process the response
-    let responseKey = jsPsych.pluginAPI.convertKeyCodeToKeyCharacter(keyboardResponse.key);
-    let response = null;
-    switch (responseKey) {
-      case trial.first_key:
-        response = "first";
-        break;
-      case trial.second_key:
-        response = "second";
-        break;
-    }
 
     // the probe is the stimuli that is being instructed to attend. 
     // Instruction "not red" --> probe is green. Instruction "now red" --> probe is red.
     let isProbeFirst = trial.soa < 0;
-    let correct = isProbeFirst === (response === "first") || trial.soa === 0;
+    let correct = isProbeFirst === (response === TargetType.FIRST) || trial.soa === 0;
 
     const resultData = Object.assign({}, trial, {
-      response_key: responseKey,
+      response_key: response === TargetType.FIRST ? trial.first_key : trial.second_key,
       response: response,
       response_correct: correct,
-      rt: keyboardResponse.rt,
+      rt: Math.round(responseEndTime - responseStartTime),
     });
 
     if (trial.play_feedback) {
@@ -125,10 +148,9 @@ export class TojPluginWhichFirst extends TojPlugin {
     }
 
     // Finish trial and log data
-    jsPsych.finishTrial(resultData);
+    this.jsPsych.finishTrial(resultData);
+    
   }
 }
 
-const instance = new TojPluginWhichFirst();
-jsPsych.plugins["toj-which_first"] = instance;
-export default instance;
+export default TojPluginWhichFirst;
