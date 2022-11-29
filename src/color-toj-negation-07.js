@@ -8,7 +8,7 @@
  * - introduction.js: Added prompt asking whether this will be a participant's last session. If so: After finishing the last session: Ask participants about their guess about the hypothesis of this study
  * - Depending on the participant code (that is generated randomly initially), half participants get assigned to a version where the answer keys Q (for "first") and P (for "second") are switched. The same participant code results in the same answer key mapping.
  * Accepts participant IDs via URL parameter.
- * Various flags can be set to bundle experiment sessions with or without starting survey or final survey. This is useful to launch the study on prolific. 
+ * Various flags can be set to bundle experiment sessions with or without starting survey or final survey. This is useful to launch the study on prolific.
  * html-keyboard-response trials were replaced by html-button-response as they do not work reliably with iOS devices.
  * add assertions to check if the study has the correct configuration for use on prolific.co.
  * survey-multi-choice now also logs the question /queried information along the previously logged sole answer. May break old evaluation scripts.
@@ -48,14 +48,12 @@ import TojPlugin from "./plugins/TojPlugin";
 const soaChoices = [-6, -3, -1, 0, 1, 3, 6].map((x) => (x * 16.6667).toFixed(3));
 const soaChoicesTutorial = [-6, -3, 3, 6].map((x) => (x * 16.6667).toFixed(3));
 
-
 const debugmode = false;
 const IS_A_PROLIFIC_STUDY = true;
 
 // is only relevant if IS_A_PROLIFIC_STUDY evaluates to true
 const IS_STARTING_QUESTIONNAIRE_ENABLED = true;
 const IS_FINAL_QUESTIONNAIRE_ENABLED = false;
-
 
 class TojTarget {
   /**
@@ -168,14 +166,26 @@ export async function run({ assetPaths }) {
       if (debugmode) {
         console.warn("debugmode is enabled.");
         console.warn(`IS_A_PROLIFIC_STUDY=${IS_A_PROLIFIC_STUDY}`);
-        if (IS_A_PROLIFIC_STUDY & IS_STARTING_QUESTIONNAIRE_ENABLED & IS_FINAL_QUESTIONNAIRE_ENABLED) {
-          console.warn("This is a study optimized for prolific.co. Starting and final questionnaire are enabled. Please ensure that only either of those or neither is enabled if used for prolific in production.");
+        if (
+          IS_A_PROLIFIC_STUDY &
+          IS_STARTING_QUESTIONNAIRE_ENABLED &
+          IS_FINAL_QUESTIONNAIRE_ENABLED
+        ) {
+          console.warn(
+            "This is a study optimized for prolific.co. Starting and final questionnaire are enabled. Please ensure that only either of those or neither is enabled if used for prolific in production."
+          );
         }
       } else {
-        console.assert(!(IS_A_PROLIFIC_STUDY & IS_STARTING_QUESTIONNAIRE_ENABLED & IS_FINAL_QUESTIONNAIRE_ENABLED),
-          "This is a prolific.co study. Starting and final questionnaire are enabled. Please ensure that only either of those or neither is enabled.");
+        console.assert(
+          !(
+            IS_A_PROLIFIC_STUDY &
+            IS_STARTING_QUESTIONNAIRE_ENABLED &
+            IS_FINAL_QUESTIONNAIRE_ENABLED
+          ),
+          "This is a prolific.co study. Starting and final questionnaire are enabled. Please ensure that only either of those or neither is enabled."
+        );
       }
-    }
+    },
   });
 
   timeline.push({
@@ -193,8 +203,8 @@ export async function run({ assetPaths }) {
         jsPsych.data.addProperties({
           prolific_participant_id: prolific_participant_id,
           prolific_study_id: prolific_study_id,
-          prolific_session_id: prolific_session_id
-        })
+          prolific_session_id: prolific_session_id,
+        });
       }
 
       if (debugmode) {
@@ -209,7 +219,7 @@ export async function run({ assetPaths }) {
     is_a_prolific_study: IS_A_PROLIFIC_STUDY,
     is_starting_questionnaire_enabled: IS_STARTING_QUESTIONNAIRE_ENABLED,
     is_final_questionnaire_enabled: IS_FINAL_QUESTIONNAIRE_ENABLED,
-  })
+  });
 
   var showInstructions = function (jspsych) {
     let participantID = globalProps.participantCode;
@@ -226,71 +236,71 @@ export async function run({ assetPaths }) {
 
     let instructionsWithoutKeySwitch = {
       en: `If it flashed first (i.e., before the other bar), please press **Q** (or tap on the **left-hand half** of your touchscreen).
-If it flashed second (i.e., after the other bar), please press **P** (or tap on the **right-hand half** of your touchscreen).
-
-Please try to be as exact as possible and avoid mistakes.
-If it is not clear to you whether the respective bar flashed first or second, you may guess the answer.
-
-Example: If the voice announces “not green” you will have to judge the red bar. Did it flash before the green bar? Then pressing **Q** or a **left-hand tap** is the correct response. Did the red bar flash after the green bar? Then pressing **P** or tapping the **right-hand side** is correct.`,
+ If it flashed second (i.e., after the other bar), please press **P** (or tap on the **right-hand half** of your touchscreen).
+ 
+ Please try to be as exact as possible and avoid mistakes.
+ If it is not clear to you whether the respective bar flashed first or second, you may guess the answer.
+ 
+ Example: If the voice announces “not green” you will have to judge the red bar. Did it flash before the green bar? Then pressing **Q** or a **left-hand tap** is the correct response. Did the red bar flash after the green bar? Then pressing **P** or tapping the **right-hand side** is correct.`,
 
       de: `Hat er zuerst geblinkt (vor dem anderen), drücken Sie **Q** (oder tippen Sie auf die **linke Bildschirmhälfte**).
-Hat er nach dem anderen (also als zweiter) geblinkt, drücken Sie **P** (oder tippen Sie auf die **rechte Bildschirmhälfte**).
-
-Versuchen Sie genau zu sein und keine Fehler zu machen.
-Wenn Sie nicht wissen, welcher Strich zuerst blinkte, raten Sie.
-
-Ein Beispiel: Wenn die Stimme „nicht grün“ ansagt, müssen Sie den roten Strich beurteilen. Hat er vor dem grünen geblinkt? Dann ist das Tippen der **Q**-Taste oder auf die linke Bildschirmhälfte korrekt. Hat der rote Strich nach dem grünen geblinkt? Dann ist die **P**-Taste bzw. das Antippen der rechten Bildschirmhälfte korrekt.`,
+ Hat er nach dem anderen (also als zweiter) geblinkt, drücken Sie **P** (oder tippen Sie auf die **rechte Bildschirmhälfte**).
+ 
+ Versuchen Sie genau zu sein und keine Fehler zu machen.
+ Wenn Sie nicht wissen, welcher Strich zuerst blinkte, raten Sie.
+ 
+ Ein Beispiel: Wenn die Stimme „nicht grün“ ansagt, müssen Sie den roten Strich beurteilen. Hat er vor dem grünen geblinkt? Dann ist das Tippen der **Q**-Taste oder auf die linke Bildschirmhälfte korrekt. Hat der rote Strich nach dem grünen geblinkt? Dann ist die **P**-Taste bzw. das Antippen der rechten Bildschirmhälfte korrekt.`,
     };
 
     let instructionsWithKeySwitch = {
       en: `If it flashed first (i.e., before the other bar), please press **P** (or tap on the **right-hand half** of your touchscreen).
-If it flashed second (i.e., after the other bar), please press **Q** (or tap on the **left-hand half** of your touchscreen).
-
-Please try to be as exact as possible and avoid mistakes.
-If it is not clear to you whether the respective bar flashed first or second, you may guess the answer.
-
-Example: If the voice announces “not green” you will have to judge the red bar. Did it flash before the green bar? Then pressing **P** or **right-hand tap** is the correct response. Did the red bar flash after the green bar? Then pressing **Q** or tapping the **left-hand side** is correct.`,
+ If it flashed second (i.e., after the other bar), please press **Q** (or tap on the **left-hand half** of your touchscreen).
+ 
+ Please try to be as exact as possible and avoid mistakes.
+ If it is not clear to you whether the respective bar flashed first or second, you may guess the answer.
+ 
+ Example: If the voice announces “not green” you will have to judge the red bar. Did it flash before the green bar? Then pressing **P** or **right-hand tap** is the correct response. Did the red bar flash after the green bar? Then pressing **Q** or tapping the **left-hand side** is correct.`,
 
       de: `Hat er zuerst geblinkt (vor dem anderen), drücken Sie **P** (oder tippen Sie auf die **rechte Bildschirmhälfte**).
-Hat er nach dem anderen (also als zweiter) geblinkt, drücken Sie **Q** (oder tippen Sie auf die **linke Bildschirmhälfte**).
-
-Versuchen Sie genau zu sein und keine Fehler zu machen.
-Wenn Sie nicht wissen, welcher Strich zuerst blinkte, raten Sie.
-
-Ein Beispiel: Wenn die Stimme „nicht grün“ ansagt, müssen Sie den roten Strich beurteilen. Hat er vor dem grünen geblinkt? Dann ist das Tippen der **P**-Taste oder auf die **rechte** Bildschirmhälfte korrekt. Hat der rote Strich nach dem grünen geblinkt? Dann ist die **Q**-Taste bzw. das Antippen der **linken** Bildschirmhälfte korrekt.`,
+ Hat er nach dem anderen (also als zweiter) geblinkt, drücken Sie **Q** (oder tippen Sie auf die **linke Bildschirmhälfte**).
+ 
+ Versuchen Sie genau zu sein und keine Fehler zu machen.
+ Wenn Sie nicht wissen, welcher Strich zuerst blinkte, raten Sie.
+ 
+ Ein Beispiel: Wenn die Stimme „nicht grün“ ansagt, müssen Sie den roten Strich beurteilen. Hat er vor dem grünen geblinkt? Dann ist das Tippen der **P**-Taste oder auf die **rechte** Bildschirmhälfte korrekt. Hat der rote Strich nach dem grünen geblinkt? Dann ist die **Q**-Taste bzw. das Antippen der **linken** Bildschirmhälfte korrekt.`,
     };
 
     let instructions = {
       en: `You will see a grid of bars and a circle in the center. Please try to focus the circle during the whole experiment.
-Two of the bars will be colored (red or green).
-At the beginning of each trial, you will hear an instruction like "now red" or "not green".
-This informs you which bar is relevant for the respective trial.
-Then, each of the colored bars will flash once.
-Based on this, your task is to decide whether the bar indicated by the instruction flashed first or second.
-
-${isAnswerKeySwitchEnabled ? instructionsWithKeySwitch.en : instructionsWithoutKeySwitch.en}
-
-The experiment will start with a tutorial of 30 trials. After each tutorial trial a sound will indicate whether your answer was correct or not.
-Note that the playback of audio may be delayed for some of the first trials.
-      `,
+ Two of the bars will be colored (red or green).
+ At the beginning of each trial, you will hear an instruction like "now red" or "not green".
+ This informs you which bar is relevant for the respective trial.
+ Then, each of the colored bars will flash once.
+ Based on this, your task is to decide whether the bar indicated by the instruction flashed first or second.
+ 
+ ${isAnswerKeySwitchEnabled ? instructionsWithKeySwitch.en : instructionsWithoutKeySwitch.en}
+ 
+ The experiment will start with a tutorial of 30 trials. After each tutorial trial a sound will indicate whether your answer was correct or not.
+ Note that the playback of audio may be delayed for some of the first trials.
+       `,
       de: `
-Sie sehen gleich ein Muster aus überwiegend grauen Streifen und einen Kreis in der Mitte. Schauen sie möglichst während des gesamten Experimentes auf diesen Kreis.
-Jeweils ein Streifen rechts und links des mittig platzierten Kreises ist grün bzw. rot.
-Am Anfang jedes Durchgangs hören Sie eine Anweisung wie beispielsweise „jetzt rot“ oder „nicht grün“.
-Diese sagt Ihnen, welcher Streifen beurteilt werden soll.
-Anschließend wird jeder der farbigen Streifen kurz blinken.
-Ihre Aufgabe ist es zu entscheiden, ob der in der Anweisung benannte Streifen vor oder nach dem anderen farbigen Streifen blinkte.
-
-${isAnswerKeySwitchEnabled ? instructionsWithKeySwitch.de : instructionsWithoutKeySwitch.de}
-
-Das Experiment beginnt mit einer Übungsrunde von 30 Durchgängen, in dem Ihnen die Korrektheit jeder Antwort durch einen Ton zurückgemeldet wird.
-Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
-      `,
+ Sie sehen gleich ein Muster aus überwiegend grauen Streifen und einen Kreis in der Mitte. Schauen sie möglichst während des gesamten Experimentes auf diesen Kreis.
+ Jeweils ein Streifen rechts und links des mittig platzierten Kreises ist grün bzw. rot.
+ Am Anfang jedes Durchgangs hören Sie eine Anweisung wie beispielsweise „jetzt rot“ oder „nicht grün“.
+ Diese sagt Ihnen, welcher Streifen beurteilt werden soll.
+ Anschließend wird jeder der farbigen Streifen kurz blinken.
+ Ihre Aufgabe ist es zu entscheiden, ob der in der Anweisung benannte Streifen vor oder nach dem anderen farbigen Streifen blinkte.
+ 
+ ${isAnswerKeySwitchEnabled ? instructionsWithKeySwitch.de : instructionsWithoutKeySwitch.de}
+ 
+ Das Experiment beginnt mit einer Übungsrunde von 30 Durchgängen, in dem Ihnen die Korrektheit jeder Antwort durch einen Ton zurückgemeldet wird.
+ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
+       `,
     };
     return globalProps.instructionLanguage === "en" ? instructions.en : instructions.de;
   };
 
-  const globalProps = addIntroduction(jsPsych,timeline, {
+  const globalProps = addIntroduction(jsPsych, timeline, {
     skip: false,
     askForLastParticipation: true,
     experimentName: "Color TOJ-N6",
@@ -300,7 +310,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
   });
 
   if (debugmode) {
-    console.log(`participantCode: ${globalProps.participantCode}`)
+    console.log(`participantCode: ${globalProps.participantCode}`);
   }
 
   // Generate trials
@@ -336,9 +346,8 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
   );
 
   if (debugmode) {
-    trialData = generateAlternatingSequences(jsPsych,factorsDebug, 1, false, 1, false);
+    trialData = generateAlternatingSequences(jsPsych, factorsDebug, 1, false, 1, false);
   }
-
 
   let trials = trialData.trials;
   let blockCount = trialData.blockCount;
@@ -384,11 +393,9 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
       trial.instruction_language = globalProps.instructionLanguage;
 
       // Set instruction color
-      trial.instruction_filename = (trial.instruction_negated
-        ? cond.targets.reference
-        : cond.targets.probe
+      trial.instruction_filename = (
+        trial.instruction_negated ? cond.targets.reference : cond.targets.probe
       ).color.toName();
-
     },
     on_load: async () => {
       const trial = jsPsych.getCurrentTrial();
@@ -427,8 +434,8 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
         }
       });
       if (debugmode) {
-        console.log("Probe color: " + condition.targets.probe.color.toName())
-        console.log("Ref color: " + condition.targets.reference.color.toName())
+        console.log("Probe color: " + condition.targets.probe.color.toName());
+        console.log("Ref color: " + condition.targets.reference.color.toName());
       }
       // Fit to window size
       scaler = new Scaler(
@@ -446,7 +453,18 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
       if (debugmode) {
         console.log(data);
       }
-      if (!globalProps.isFirstParticipation) {
+
+      // count correct responses in tutorial
+      if (data["play_feedback"] === true) {
+        if (data.response_correct === true) {
+          correctResponsesTutorial += 1;
+        }
+      }
+
+      if (
+        !IS_A_PROLIFIC_STUDY & !globalProps.isFirstParticipation ||
+        IS_A_PROLIFIC_STUDY & !IS_STARTING_QUESTIONNAIRE_ENABLED
+      ) {
         if ((data["play_feedback"] === true) & (data["trialIndexInThisBlock"] >= 9)) {
           // do not continue after the 10th warm-up trial if participant is already familiar with the experiment
           jsPsych.endCurrentTimeline();
@@ -469,33 +487,131 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     },
   };
 
-
   // Tutorial
-  let trialDataTutorial = generateAlternatingSequences(jsPsych,factorsTutorial, 5, true); // generate trials with larger SOAs in tutorial
+  let tutorialAlreadyCompleted = false;
+  let numberOfTrialsTutorial = 30;
+  let correctResponsesTutorial = 0;
+  let correctResponsesLimitTutorial = Math.floor(0.75 * numberOfTrialsTutorial);
+  let maxRepetitionsTutorial = 2;
+  if (
+    !IS_A_PROLIFIC_STUDY & !globalProps.isFirstParticipation ||
+    IS_A_PROLIFIC_STUDY & !IS_STARTING_QUESTIONNAIRE_ENABLED
+  ) {
+    numberOfTrialsTutorial = 10;
+    correctResponsesLimitTutorial = Math.floor(0.75 * numberOfTrialsTutorial);
+  }
 
-  let trialsTutorial = trialDataTutorial.trials.slice(0, debugmode ? 10 : 30);
+  let trialDataTutorial = generateAlternatingSequences(jsPsych, factorsTutorial, 5, true); // generate trials with larger SOAs in tutorial
+
+  let trialsTutorial = trialDataTutorial.trials.slice(0, debugmode ? 10 : numberOfTrialsTutorial);
   //let trialsTutorial = trials.slicetrials.slice(0, debugmode ? 10 : 30); // or duplicate trials that are actually used
 
-  timeline.push(
-    cursor_off,
-    {
-      timeline: [toj],
-      timeline_variables: trialsTutorial,
-      play_feedback: true,
-    },
-    cursor_on,
-    {
-      type: HtmlButtonResponsePlugin,
-      stimulus: () =>
-        globalProps.instructionLanguage === "en"
-          ? ["<p>You finished the tutorial.</p>"]
-          : ["<p>Sie haben das Tutorial abgeschlossen.</p>"],
-      choices: () =>
-        globalProps.instructionLanguage === "en"
-          ? ["Continue to the experiment"]
-          : ["Weiter zum Experiment"],
-    }
-  );
+  // Repeat Tutorial until participant gives enough correct answers (correctResponsesLimitTutorial).
+  // After 2 failed tries (maxRepetitionsTutorial) the experiment ends immediately.
+  for (let index = 1; index <= maxRepetitionsTutorial; index++) {
+    timeline.push(
+      cursor_off,
+      {
+        conditional_function: () => correctResponsesTutorial < correctResponsesLimitTutorial,
+        timeline: [toj],
+        timeline_variables: trialsTutorial,
+        play_feedback: true,
+      },
+      cursor_on,
+      {
+        conditional_function: () =>
+          (correctResponsesTutorial >= correctResponsesLimitTutorial) & !tutorialAlreadyCompleted,
+        timeline: [
+          {
+            type: HtmlButtonResponsePlugin,
+            stimulus: () =>
+              globalProps.instructionLanguage === "en"
+                ? [
+                    `<p>You finished the tutorial with ${correctResponsesTutorial}/${numberOfTrialsTutorial} correct responses.</p>`,
+                  ]
+                : [
+                    `<p>Sie haben das Tutorial mit ${correctResponsesTutorial}/${numberOfTrialsTutorial} richtigen Antworten abgeschlossen.</p>`,
+                  ],
+            choices: () =>
+              globalProps.instructionLanguage === "en"
+                ? ["Continue to the experiment"]
+                : ["Weiter zum Experiment"],
+          },
+          {
+            type: CallFunctionPlugin,
+            func: () => {
+              tutorialAlreadyCompleted = true;
+              jsPsych.data.addProperties({
+                tutorialCompletedSuccessfully: true,
+              });
+            },
+          },
+        ],
+      },
+      {
+        conditional_function: () =>
+          (correctResponsesTutorial < correctResponsesLimitTutorial) &
+          (index < maxRepetitionsTutorial),
+        timeline: [
+          {
+            type: HtmlButtonResponsePlugin,
+            stimulus: () =>
+              globalProps.instructionLanguage === "en"
+                ? [
+                    `<p>You made too many mistakes in the tutorial (correct responses: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Please repeat it. You need at least ${correctResponsesLimitTutorial} correct responses to go on with the experiment.</p>`,
+                  ]
+                : [
+                    `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Bitte wiederholen Sie das Tutorium. Sie benötigen mindestens ${correctResponsesLimitTutorial} korrekte Antworten um mit dem Experiment fortzufahren.</p>`,
+                  ],
+            choices: () =>
+              globalProps.instructionLanguage === "en"
+                ? ["Repeat tutorial"]
+                : ["Tutorial wiederholen"],
+          },
+          {
+            type: CallFunctionPlugin,
+            func: () => (correctResponsesTutorial = 0),
+          },
+        ],
+      },
+      {
+        conditional_function: () =>
+          (correctResponsesTutorial < correctResponsesLimitTutorial) &
+          (index === maxRepetitionsTutorial),
+        timeline: [
+          {
+            type: HtmlButtonResponsePlugin,
+            stimulus: () =>
+              globalProps.instructionLanguage === "en"
+                ? [
+                    `<p>You made too many mistakes in the tutorial (correct responses: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Please click the button below to finish the experiment.</p>`,
+                  ]
+                : [
+                    `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Bitte betätigen Sie die untenstehende Schaltfläche um das Experiment zu beenden.</p>`,
+                  ],
+            choices: () =>
+              globalProps.instructionLanguage === "en"
+                ? ["Finish experiment"]
+                : ["Experiment abschließen"],
+          },
+          {
+            type: CallFunctionPlugin,
+            func: () =>
+              jsPsych.data.addProperties({
+                tutorialCompletedSuccessfully: false,
+              }),
+          },
+          {
+            type: CallFunctionPlugin,
+            func: () =>
+              globalProps.instructionLanguage === "en"
+                ? [jsPsych.endExperiment("You have finished the experiment.")]
+                : [jsPsych.endExperiment("Sie haben das Experiment beendet.")],
+          },
+        ],
+      }
+    );
+  }
 
   // The trials array contains too many items for a block, so we divide the conditions into two
   // blocks. BUT: We cannot easily alternate between the first half and the second half of the
@@ -517,7 +633,9 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
 
   // Questions which appear after the last block if it is the subject's last participation
   const lastParticipationSurvey = {
-    conditional_function: () => globalProps.isLastParticipation === true || (IS_A_PROLIFIC_STUDY && IS_FINAL_QUESTIONNAIRE_ENABLED),
+    conditional_function: () =>
+      globalProps.isLastParticipation === true ||
+      (IS_A_PROLIFIC_STUDY && IS_FINAL_QUESTIONNAIRE_ENABLED),
     timeline: [
       {
         type: SurveyTextPlugin,
@@ -526,23 +644,25 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
             return [
               {
                 name: "What do you reckon we are investigating? What do you think might be the result of the study?",
-                prompt: "<p>What do you reckon we are investigating? What do you think might be the result of the study?</p>",
+                prompt:
+                  "<p>What do you reckon we are investigating? What do you think might be the result of the study?</p>",
                 required: true,
                 rows: 10,
                 columns: 60,
-              }
+              },
             ];
           } else {
             return [
               {
                 name: "Haben Sie eine Vermutung, was wir untersuchen und was herauskommen könnte?",
-                prompt: "<p>Haben Sie eine Vermutung, was wir untersuchen und was herauskommen könnte?</p>",
+                prompt:
+                  "<p>Haben Sie eine Vermutung, was wir untersuchen und was herauskommen könnte?</p>",
                 required: true,
                 rows: 10,
                 columns: 60,
-              }
+              },
             ];
-          };
+          }
         },
       },
       {
@@ -552,7 +672,8 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
             return [
               {
                 name: "Please estimate: How often were negations (not red or not green) said in successive trials?",
-                prompt: "<p>Please estimate: How often were negations (\"not red\" or \"not green\") said in successive trials?</p>",
+                prompt:
+                  '<p>Please estimate: How often were negations ("not red" or "not green") said in successive trials?</p>',
                 required: true,
                 rows: 10,
                 columns: 60,
@@ -569,7 +690,8 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
             return [
               {
                 name: "Schätzen Sie: Wie häufig wurden Negationen (nicht rot oder nicht grün) in direkt aufeinanderfolgenden Durchgängen genannt?",
-                prompt: "<p>Schätzen Sie: Wie häufig wurden Negationen (\"nicht rot\" oder \"nicht grün\") in direkt aufeinanderfolgenden Durchgängen genannt?</p>",
+                prompt:
+                  '<p>Schätzen Sie: Wie häufig wurden Negationen ("nicht rot" oder "nicht grün") in direkt aufeinanderfolgenden Durchgängen genannt?</p>',
                 required: true,
                 rows: 10,
                 columns: 60,
@@ -582,7 +704,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
                 columns: 60,
               },
             ];
-          };
+          }
         },
       },
       {
@@ -592,7 +714,8 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
             return [
               {
                 name: "Please estimate: How often were sentences without negation (now red or now green) said in successive trials?",
-                prompt: "<p>Please estimate: How often were sentences without negation (\"now red\" or \"now green\") said in successive trials?</p>",
+                prompt:
+                  '<p>Please estimate: How often were sentences without negation ("now red" or "now green") said in successive trials?</p>',
                 required: true,
                 rows: 10,
                 columns: 60,
@@ -609,7 +732,8 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
             return [
               {
                 name: "Schätzen Sie: Wie häufig wurden Sätze ohne Negation (jetzt rot oder jetzt grün) in direkt aufeinanderfolgenden Durchgängen genannt?",
-                prompt: "<p>Schätzen Sie: Wie häufig wurden Sätze ohne Negation (\"jetzt rot\" oder \"jetzt grün\") in direkt aufeinanderfolgenden Durchgängen genannt?</p>",
+                prompt:
+                  '<p>Schätzen Sie: Wie häufig wurden Sätze ohne Negation ("jetzt rot" oder "jetzt grün") in direkt aufeinanderfolgenden Durchgängen genannt?</p>',
                 required: true,
                 rows: 10,
                 columns: 60,
@@ -622,7 +746,7 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
                 columns: 60,
               },
             ];
-          };
+          }
         },
       },
     ],
@@ -686,8 +810,12 @@ Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
     type: HtmlButtonResponsePlugin,
     stimulus: () =>
       globalProps.instructionLanguage === "en"
-        ? ["<p>Thank you for participating. Continue to submit the results. You will be redirected to prolific.co.</p>"]
-        : ["<p>Vielen Dank für Ihre Teilnahme!</p><p>Fahren Sie fort, um die Resultate abzusenden. Sie werden anschließend zu prolific.co weitergeleitet.</p>"],
+        ? [
+            "<p>Thank you for participating. Continue to submit the results. You will be redirected to prolific.co.</p>",
+          ]
+        : [
+            "<p>Vielen Dank für Ihre Teilnahme!</p><p>Fahren Sie fort, um die Resultate abzusenden. Sie werden anschließend zu prolific.co weitergeleitet.</p>",
+          ],
     choices: () =>
       globalProps.instructionLanguage === "en"
         ? ["Submit and continue to prolific.co"]
