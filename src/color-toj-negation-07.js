@@ -30,6 +30,7 @@ import { generateAlternatingSequences, copy } from "./util/trialGenerator";
 
 import { sample } from "lodash";
 import randomInt from "random-int";
+import marked from "marked";
 
 import { TouchAdapter } from "./util/TouchAdapter";
 import { Scaler } from "./util/Scaler";
@@ -510,6 +511,20 @@ export async function run({ assetPaths }) {
   // After 2 failed tries (maxRepetitionsTutorial) the experiment ends immediately.
   for (let index = 1; index <= maxRepetitionsTutorial; index++) {
     timeline.push(
+      cursor_on,
+      {
+        conditional_function: () => (index > 1) & !tutorialAlreadyCompleted,
+        timeline: [
+          {
+            type: HtmlButtonResponsePlugin,
+            stimulus: () => marked(showInstructions(jsPsych)),
+            choices: () =>
+              globalProps.instructionLanguage === "en"
+                ? ["Got it, start the tutorial"]
+                : ["Alles klar, Tutorial starten"],
+          },
+        ],
+      },
       cursor_off,
       {
         conditional_function: () => correctResponsesTutorial < correctResponsesLimitTutorial,
@@ -561,7 +576,7 @@ export async function run({ assetPaths }) {
                     `<p>You made too many mistakes in the tutorial (correct responses: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Please repeat it. You need at least ${correctResponsesLimitTutorial} correct responses to go on with the experiment.</p>`,
                   ]
                 : [
-                    `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Bitte wiederholen Sie das Tutorium. Sie benötigen mindestens ${correctResponsesLimitTutorial} korrekte Antworten um mit dem Experiment fortzufahren.</p>`,
+                    `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Bitte wiederholen Sie das Tutorial. Sie benötigen mindestens ${correctResponsesLimitTutorial} korrekte Antworten um mit dem Experiment fortzufahren.</p>`,
                   ],
             choices: () =>
               globalProps.instructionLanguage === "en"
