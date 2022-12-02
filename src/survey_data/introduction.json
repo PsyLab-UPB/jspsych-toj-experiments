@@ -1,0 +1,81 @@
+{
+    "Lang": {
+      "type": "SingleChoice",
+      "question_en": "Most parts of this experiment are available in multiple languages. Please select a language.",
+      "choice1_en": "Deutsch",
+      "choice2_en": "Englisch",
+      "writeback1": "de",
+      "writeback2": "en"
+    },
+    "FirstParticipation": {
+      "type": "SingleChoice",
+      "question_en": "Is this the first time you participate in this experiment?",
+      "question_de": "Ist es das erste Mal, dass Sie an dieser Studie teilnehmen?",
+      "choice1_en": "yes",
+      "choice2_en": "no",
+      "choice1_de": "ja",
+      "choice2_de": "nein",
+      "writeback1": true,
+      "writeback2": false
+    },
+    "ParticipantCodeReq": {
+      "type": "freiText",
+      "question_de": "<p>Bitte geben sie ihren Teilnahme-Code ein (den Sie bei der ersten Teilnahme an diesem Experiment bekommen haben).</p>",
+      "question_en": "<p>Please enter your participant code (that you got the first time you participated in this experiment).</p>",
+      "rows": 1,
+      "required": true
+    },
+    "DeclarationOfConsent": {
+      "type": "html",
+      "question_de": "<iframe class='declaration' src='media/misc/declaration_de.html'></iframe>",
+      "question_en": "<iframe class='declaration' src='media/misc/declaration_en.html'></iframe>",
+      "button_en": "I agree with the terms and conditions",
+      "button_de": "Ich stimme den Versuchsbedingungen zu"
+    },
+    "BlueLightFilters": {
+      "type": "html",
+      "question_de": "<iframe class='technical-instruction' src='media/misc/technical_instructions_color_temperature_de.html'></iframe>",
+      "question_en": "<iframe class='technical-instruction' src='media/misc/technical_instructions_color_temperature_en.html'></iframe>",
+      "button_en": "The blue light filter are deactivated",
+      "button_de": "Die Blaulichtfilter sind deaktiviert"
+    },
+    "DarkMode": {
+      "type": "html",
+      "question_de": "<iframe class='technical-instruction' src='media/misc/technical_instructions_dark_reader_de.html'></iframe>",
+      "question_en": "<iframe class='technical-instruction' src='media/misc/technical_instructions_dark_reader_en.html'></iframe>",
+      "button_en": "Dark mode is inactive",
+      "button_de": "Dark mode ist abgeschaltet"
+    },
+    "ColorVision": {
+      "type": "html",
+      "question_de": "<iframe class='technical-instruction' src='media/misc/technical_instructions_color_vision_de.html'></iframe>",
+      "question_en": "<iframe class='technical-instruction' src='media/misc/technical_instructions_color_vision_en.html'></iframe>",
+      "button_en": "I do not have color vision deficiencies",
+      "button_de": "Ich habe keine Farbsehschwäche"
+    },
+    "ComputerSound": {
+      "type": "html",
+      "question_de": "<iframe class='technical-instruction' src='media/misc/technical_instructions_sound_de.html'></iframe>",
+      "question_en": "<iframe class='technical-instruction' src='media/misc/technical_instructions_sound_en.html'></iframe>",
+      "button_en": "Computer sounds are enabled",
+      "button_de": "Der Ton ist eingeschaltet"
+    },
+    "Gender": {
+      "type": "SingleChoice",
+      "question_en": "Please select your gender?",
+      "question_de": "Bitte wähle dein Geschlecht",
+      "choice1_en": "male",
+      "choice2_en": "female",
+      "choice3_en": "diverse",
+      "choice1_de": "Männlich",
+      "choice2_de": "Weiblich",
+      "choice3_de": "Divers"
+    },
+    "Age": {
+      "type": "freiText",
+      "question_en": "Please enter your age.",
+      "question_de": "Bitte geben Sie Ihr Alter ein.",
+      "rows": 1,
+      "required": true
+    }
+  }
