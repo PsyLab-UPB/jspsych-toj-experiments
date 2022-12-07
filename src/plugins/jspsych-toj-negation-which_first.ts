@@ -13,16 +13,38 @@ import delay from "delay";
 import { ParameterType } from "jspsych";
 import { playAudio } from "../util/audio";
 import { TojPlugin } from "./TojPlugin";
+import * as $ from "jquery";
 
 enum TargetType {
   FIRST = "first",
-  SECOND = "second"
+  SECOND = "second",
+}
+let start = Number.POSITIVE_INFINITY
+let active = false
+let clickcounter = 0
+function animateCircle(e){
+    if(active && (!e.keyCode || e.keyCode === 32)) {
+      //console.log("keydown");
+      if(!Number.isFinite(start)){
+        start = new Date().getTime()
+        console.log("here")
+        $("#countdown circle").width();
+        $("#countdown circle").addClass("run")
+        if(clickcounter == 0){
+          clickcounter = 1
+        }
+        else if(clickcounter == 2){
+          clickcounter = 3
+        }
+        
+      }     
+    }
 }
 
-
 export class TojPluginWhichFirst extends TojPlugin {
+  static newTouchMode = true;
 
-  static info = <any> {
+  static info = <any>{
     name: "toj-which_first",
     parameters: {
       ...TojPlugin.info.parameters,
@@ -73,10 +95,13 @@ export class TojPluginWhichFirst extends TojPlugin {
         description: "The voice of the instruction ('m' or 'f')",
       },
     },
-  }
+  };
 
   async trial(display_element, trial, on_load) {
-    TojPlugin.current = <any> this;
+    if (!$("#countdown").length){
+      $("body").append("<div id='countdown' class='countdown'><div id='countdown-number'></div><svg><circle r='18' cx='20' cy='20'></circle></svg></div")
+    }
+    TojPlugin.current = <any>this;
 
     this._appendContainerToDisplayElement(display_element, trial);
     on_load();
@@ -85,7 +110,6 @@ export class TojPluginWhichFirst extends TojPlugin {
     const audioBaseUrl = `media/audio/color-toj-negation/${trial.instruction_language}/${trial.instruction_voice}/`;
     await playAudio(audioBaseUrl + (trial.instruction_negated ? "not" : "now") + ".wav");
     await playAudio(audioBaseUrl + trial.instruction_filename + ".wav");
-
 
     await delay(trial.fixation_time);
 
@@ -99,17 +123,92 @@ export class TojPluginWhichFirst extends TojPlugin {
 
     const responseStartTime = performance.now();
 
-    const probeTouched = new Promise<TargetType>((resolve) => {
-      (trial.first_touch_element as HTMLElement)?.addEventListener("touchstart", () => {
-        resolve(TargetType.FIRST);
-      });
-    });
+    let firstResponse;
+    let secondResponse;
 
-    const referenceTouched = new Promise<TargetType>((resolve) => {
-      (trial.second_touch_element as HTMLElement)?.addEventListener("touchstart", () => {
-        resolve(TargetType.SECOND);
+    let firstResponse2;
+
+    if (TojPluginWhichFirst.newTouchMode) {
+      firstResponse = new Promise<TargetType>((resolve) => {
+        var longpress = 1000;
+        // holds the start tim
+        $(document).on("mousedown", animateCircle);
+
+        $(document).on("mouseleave", function (e) {
+          start = Number.POSITIVE_INFINITY;
+        });
+
+        $(document).on("mouseup", function (e) {
+          if (new Date().getTime() >= start + longpress) {
+            $("#countdown circle").removeClass("run")
+            active = false
+            resolve(TargetType.FIRST);
+          } else {
+            $("#countdown circle").removeClass("run")
+            start = Number.POSITIVE_INFINITY
+          }
+        });
       });
-    });
+
+      secondResponse = new Promise<TargetType>((resolve) => {
+        $(display_element).dblclick(function () {
+          //console.log('double tap!');
+          resolve(TargetType.SECOND);
+        });
+      });
+
+      firstResponse2 = new Promise<TargetType>((res) => {
+        var longpress = 1000;
+        // holds the start time
+        active = true
+        start = Number.POSITIVE_INFINITY;
+        clickcounter = 0
+        $(document).keydown(animateCircle);
+
+        $(document).on("mouseleave", function (e) {
+          if(e.keyCode === 32) {
+            start = Number.POSITIVE_INFINITY;
+          }
+        });
+
+        $(document).on("keyup", function (e) {
+          if (e.keyCode === 32 && new Date().getTime() >= start + longpress) {
+            $("#countdown circle").removeClass("run")
+            active = false
+            res(TargetType.FIRST);
+          } else if(e.keyCode === 32) {
+            $("#countdown circle").removeClass("run")
+            start = Number.POSITIVE_INFINITY
+          }
+        });
+        $(document).on("keyup", function (e) {
+          if(e.keyCode === 32){
+            if(clickcounter == 1){
+              clickcounter = 2
+              setTimeout(() => clickcounter = 0, 500)
+            }
+            else if(clickcounter == 3){
+              console.log("double space tab")
+              res(TargetType.SECOND);
+            }
+          }
+        })
+      })
+    } else {
+      firstResponse = new Promise<TargetType>((resolve) => {
+        (trial.first_touch_element as HTMLElement)?.addEventListener("touchstart", () => {
+          resolve(TargetType.FIRST);
+        });
+      });
+
+      secondResponse = new Promise<TargetType>((resolve) => {
+        (trial.second_touch_element as HTMLElement)?.addEventListener("touchstart", () => {
+          resolve(TargetType.SECOND);
+        });
+      });
+      firstResponse2 = new Promise<TargetType>((resolve, reject) => {
+      })
+    }
 
     const response = await Promise.race([
       this.getKeyboardResponsePromisified({
@@ -122,8 +221,9 @@ export class TojPluginWhichFirst extends TojPlugin {
           result.key === trial.first_key ? TargetType.FIRST : TargetType.SECOND
         );
       }),
-      probeTouched,
-      referenceTouched,
+      firstResponse,
+      secondResponse,
+      firstResponse2
     ]);
 
     const responseEndTime = performance.now();
@@ -131,7 +231,7 @@ export class TojPluginWhichFirst extends TojPlugin {
     // Clear the screen
     display_element.innerHTML = "";
 
-    // the probe is the stimuli that is being instructed to attend. 
+    // the probe is the stimuli that is being instructed to attend.
     // Instruction "not red" --> probe is green. Instruction "now red" --> probe is red.
     let isProbeFirst = trial.soa < 0;
     let correct = isProbeFirst === (response === TargetType.FIRST) || trial.soa === 0;
@@ -149,7 +249,6 @@ export class TojPluginWhichFirst extends TojPlugin {
 
     // Finish trial and log data
     this.jsPsych.finishTrial(resultData);
-    
   }
 }
 

@@ -302,7 +302,7 @@ export async function run({ assetPaths }) {
   };
 
   const globalProps = addIntroduction(jsPsych, timeline, {
-    skip: false,
+    skip: true,
     askForLastParticipation: true,
     experimentName: "Color TOJ-N6",
     instructions: () => showInstructions(jsPsych),
