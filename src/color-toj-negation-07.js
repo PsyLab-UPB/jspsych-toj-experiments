@@ -1,18 +1,9 @@
 /**
- * @title Color TOJ Neg 6
- * @description Experiment on negation in TVA instructions (dual-colored version with two stimuli, a merge of experiment color-toj-negation-05.js as a skeleton (meta data collection and trial generation) and experiment color-toj-negation-02.js for trial presentation (display of two stimuli instead of two stimuli pairs). This experiment is a replication of color-toj-negation-02.js with controlled sequence lengths of negations/assertions. Aside from that, following improvements / changes were made:
- * - Instruction phase: matched the experiment descriptions in declaration of consent (DSGVO) to the new experiment content (external html, specific to this experiment)
- * - Fix: Translation of headers in written instructions (external html)
- * - Improvement: parametrization of conditions to calculate the correct answer key was customized for this kind of experiment (not judging which stimuli flickered first as in jspsych-toj-negation.js but judge whether probe (instructed color) flickered first or second). The plugin jspsych-toj-negation-which_first.js was developed (derivative of TojPlugin) (specific to this experiment; can be reused)
- * - Instruction phase: discouraged use of large screens
- * - introduction.js: Added prompt asking whether this will be a participant's last session. If so: After finishing the last session: Ask participants about their guess about the hypothesis of this study
- * - Depending on the participant code (that is generated randomly initially), half participants get assigned to a version where the answer keys Q (for "first") and P (for "second") are switched. The same participant code results in the same answer key mapping.
- * Accepts participant IDs via URL parameter.
- * Various flags can be set to bundle experiment sessions with or without starting survey or final survey. This is useful to launch the study on prolific.
- * html-keyboard-response trials were replaced by html-button-response as they do not work reliably with iOS devices.
- * add assertions to check if the study has the correct configuration for use on prolific.co.
- * survey-multi-choice now also logs the question /queried information along the previously logged sole answer. May break old evaluation scripts.
- * @version 3.0.3-prolific-p1
+ * @title Color TOJ Neg 7
+ * @description Experiment on negation in TVA instructions (dual-colored version with two stimuli, a merge of experiment color-toj-negation-06.js as a skeleton (meta data collection) and experiment color-toj-negation-02.js for trial presentation (display of two stimuli instead of two stimuli pairs). This experiment is a replication of color-toj-negation-02.js with trials ordered in two halfs negations/assertions. Aside from that, following improvements / changes were made:
+ * - Tutorial has to be repeated if a certain threshhold of correct answers is not passed. If the participant fails the tutorial twice, the experiment ends immediately.
+ * - Generate trials which are asserted only in one half of the experiment and negated only in the other half of the experiment. Which half is asserted and which negated depends on the participant code (that is generated randomly initially) and if its the first, secocnd, or third participation of the participant (halfes are switched on every participation).
+ * @version 1.0-prolific-p1
  * @imageDir images/common
  * @audioDir audio/color-toj-negation,audio/feedback
  * @miscDir misc
@@ -24,9 +15,8 @@ import "../styles/main.scss";
 
 // jsPsych plugins
 import { TojPluginWhichFirst } from "./plugins/jspsych-toj-negation-which_first";
-import tojPlugin from "./plugins/jspsych-toj-negation-which_first";
 
-import { generateAlternatingSequences, copy } from "./util/trialGenerator";
+import { copy } from "./util/trialGenerator";
 
 import { sample } from "lodash";
 import randomInt from "random-int";
@@ -46,7 +36,7 @@ import PreloadPlugin from "@jspsych/plugin-preload";
 import HtmlButtonResponsePlugin from "@jspsych/plugin-html-button-response";
 import TojPlugin from "./plugins/TojPlugin";
 
-const soaChoices = [-6, -3, -1, 0, 1, 3, 6].map((x) => (x * 16.6667).toFixed(3));
+const soaChoices = [-6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6].map((x) => x * 16.667);
 const soaChoicesTutorial = [-6, -3, 3, 6].map((x) => (x * 16.6667).toFixed(3));
 
 const debugmode = false;
@@ -224,15 +214,20 @@ export async function run({ assetPaths }) {
 
   var showInstructions = function (jspsych) {
     let participantID = globalProps.participantCode;
+    let isNegatedFirst = participantID.charCodeAt(0) % 2 === 0;
     let isAnswerKeySwitchEnabled = participantID.charCodeAt(0) % 2 === 0;
 
     Object.assign(globalProps, { isAnswerKeySwitchEnabled: isAnswerKeySwitchEnabled });
     jspsych.data.addProperties({ isAnswerKeySwitchEnabled: isAnswerKeySwitchEnabled });
+    Object.assign(globalProps, { isNegatedFirst: isNegatedFirst });
+    jspsych.data.addProperties({ isNegatedFirst: isNegatedFirst });
 
     if (debugmode) {
       console.log(`participantID=${globalProps.participantCode}`);
       //console.log(`isAnswerKeySwitchEnabled=${isAnswerKeySwitchEnabled}`);
       console.log(`isAnswerKeySwitchEnabled=${globalProps.isAnswerKeySwitchEnabled}`);
+      //console.log(`isNegatedFirst=${isNegatedFirst}`);
+      console.log(`isNegatedFirst=${globalProps.isNegatedFirst}`);
     }
 
     let instructionsWithoutKeySwitch = {
@@ -304,7 +299,7 @@ export async function run({ assetPaths }) {
   const globalProps = addIntroduction(jsPsych, timeline, {
     skip: false,
     askForLastParticipation: true,
-    experimentName: "Color TOJ-N6",
+    experimentName: "Color TOJ-N7",
     instructions: () => showInstructions(jsPsych),
     isAProlificStudy: IS_A_PROLIFIC_STUDY,
     isStartingQuestionnaireEnabled: IS_STARTING_QUESTIONNAIRE_ENABLED,
@@ -315,43 +310,39 @@ export async function run({ assetPaths }) {
   }
 
   // Generate trials
-  const factors = {
-    isInstructionNegated: [true, false],
-
+  const factorsNegated = {
+    isInstructionNegated: [false],
+    probeLeft: [true, false],
     soa: soaChoices,
-    sequenceLength: [1, 2, 5],
+  };
+  const factorsAsserted = {
+    isInstructionNegated: [true],
+    probeLeft: [true, false],
+    soa: soaChoices,
   };
   const factorsTutorial = {
     isInstructionNegated: [true, false],
-
+    probeLeft: [true, false],
     soa: soaChoicesTutorial,
-    sequenceLength: [1, 2, 5],
   };
   const factorsDebug = {
     isInstructionNegated: [true, false],
     soa: [-6, 6].map((x) => (x * 16.6667).toFixed(3)),
     sequenceLength: [1, 2],
   };
-  const repetitions = 1;
 
-  const blocksize = 40;
-  const probeLeftIsFactor = true; // if true, it adds an implicit repetition
-  const alwaysStayUnderBlockSize = false;
-  let trialData = generateAlternatingSequences(
-    jsPsych,
-    factors,
-    repetitions,
-    probeLeftIsFactor,
-    blocksize,
-    alwaysStayUnderBlockSize
-  );
+  // create arrays with negated and asserted trials
+  const repetitions = 2;
+  let trialsNegated = jsPsych.randomization.factorial(factorsNegated, repetitions);
+  let trialsAsserted = jsPsych.randomization.factorial(factorsAsserted, repetitions);
+  let blockCount = 6;
+
+  // only used for tutorial and debugging in this experiment
+  let trials = jsPsych.randomization.factorial(factorsTutorial, 2);
 
   if (debugmode) {
-    trialData = generateAlternatingSequences(jsPsych, factorsDebug, 1, false, 1, false);
+    trials = jsPsych.randomization.factorial(factorsDebug, repetitions);
   }
-
-  let trials = trialData.trials;
-  let blockCount = trialData.blockCount;
 
   const touchAdapterLeft = new TouchAdapter(leftKey);
   const touchAdapterRight = new TouchAdapter(rightKey);
@@ -383,11 +374,11 @@ export async function run({ assetPaths }) {
       trial.data = {
         probeLeft,
         condition: cond,
-        sequenceLength: jsPsych.timelineVariable("sequenceLength", true),
-        rank: jsPsych.timelineVariable("rank", true),
-        blockIndex: jsPsych.timelineVariable("blockIndex", true),
-        trialIndexInThisTimeline: jsPsych.timelineVariable("trialIndex", true),
-        trialIndexInThisBlock: jsPsych.timelineVariable("trialIndexInBlock", true),
+        // sequenceLength: jsPsych.timelineVariable("sequenceLength", true),
+        // rank: jsPsych.timelineVariable("rank", true),
+        // blockIndex: jsPsych.timelineVariable("blockIndex", true),
+        // trialIndexInThisTimeline: jsPsych.timelineVariable("trialIndex", true),
+        // trialIndexInThisBlock: jsPsych.timelineVariable("trialIndexInBlock", true),
       };
 
       trial.fixation_time = cond.fixationTime;
@@ -461,16 +452,6 @@ export async function run({ assetPaths }) {
           correctResponsesTutorial += 1;
         }
       }
-
-      if (
-        !IS_A_PROLIFIC_STUDY & !globalProps.isFirstParticipation ||
-        IS_A_PROLIFIC_STUDY & !IS_STARTING_QUESTIONNAIRE_ENABLED
-      ) {
-        if ((data["play_feedback"] === true) & (data["trialIndexInThisBlock"] >= 9)) {
-          // do not continue after the 10th warm-up trial if participant is already familiar with the experiment
-          jsPsych.endCurrentTimeline();
-        }
-      }
     },
   };
 
@@ -502,10 +483,7 @@ export async function run({ assetPaths }) {
     correctResponsesLimitTutorial = Math.floor(0.75 * numberOfTrialsTutorial);
   }
 
-  let trialDataTutorial = generateAlternatingSequences(jsPsych, factorsTutorial, 5, true); // generate trials with larger SOAs in tutorial
-
-  let trialsTutorial = trialDataTutorial.trials.slice(0, debugmode ? 10 : numberOfTrialsTutorial);
-  //let trialsTutorial = trials.slicetrials.slice(0, debugmode ? 10 : 30); // or duplicate trials that are actually used
+  let trialsTutorial = trials.slice(0, debugmode ? 10 : numberOfTrialsTutorial);
 
   // Repeat Tutorial until participant gives enough correct answers (correctResponsesLimitTutorial).
   // After 2 failed tries (maxRepetitionsTutorial) the experiment ends immediately.
@@ -627,12 +605,6 @@ export async function run({ assetPaths }) {
       }
     );
   }
-
-  // The trials array contains too many items for a block, so we divide the conditions into two
-  // blocks. BUT: We cannot easily alternate between the first half and the second half of the
-  // trials array in the `experimentTojTimeline` because the timeline_variables property does not
-  // take a function. Hence, we manually create all timeline entries instead of using nested
-  // timelines. :|
 
   const makeBlockFinishedScreenTrial = (block, blockCount) => ({
     type: HtmlButtonResponsePlugin,
@@ -767,9 +739,6 @@ export async function run({ assetPaths }) {
     ],
   };
 
-  let timelineVariablesBlock = [];
-  let curBlockIndex = 0;
-
   if (debugmode) {
     trials = trials.slice(0, 16); // only relevant if the original factors are used, resulting in a very large cartesian product
     debugPrint(trials, factors);
@@ -777,45 +746,71 @@ export async function run({ assetPaths }) {
 
   timeline.push(cursor_off);
 
-  for (let i = 0; i < trials.length; i++) {
-    let trial = trials[i];
-    timelineVariablesBlock.push(trial);
-
-    if (
-      (i < trials.length - 1 && curBlockIndex < trials[i + 1]["blockIndex"]) ||
-      i === trials.length - 1
-    ) {
-      /**
-       * if (rather: when) block is full or the last trial in the list is reached:
-       * - push trial collection as a block to timeline
-       * - empty trial list
-       * - set new current block index
-       * - push block end screen to timeline
-       */
-
-      let timelineTrialsBlock = {
+  // Generator function to create the main experiment timeline
+  const timelineGenerator = function* (blockCount, isNegatedFirst) {
+    let currentBlock = 1;
+    while (currentBlock <= blockCount) {
+      yield {
         timeline: [toj],
-        timeline_variables: timelineVariablesBlock,
+        // Alternate between first half and second half of trials
+        timeline_variables: isNegatedFirst
+          ? currentBlock <= blockCount / 2
+            ? trialsNegated
+            : trialsAsserted
+          : currentBlock <= blockCount / 2
+          ? trialsAsserted
+          : trialsNegated,
+        randomize_order: true,
       };
-      timeline.push(timelineTrialsBlock);
-      timelineVariablesBlock = [];
-      if (i !== trials.length - 1) {
-        curBlockIndex = trials[i + 1]["blockIndex"];
-      } else {
-        /**
-         * last full block might not be finished by the time the experiment ends, thus incrementing the block index manually. Theoretically getting the block index via trials[i + 1]["blockIndex"] - as done in the if condition - is not necessary and incrementing the index should be sufficient.
-         */
-        curBlockIndex++;
-      }
-
-      timeline.push(cursor_on);
-      if (debugmode) {
-        console.log("blockCount=" + blockCount);
-      }
-      timeline.push(makeBlockFinishedScreenTrial(curBlockIndex, blockCount));
-      timeline.push(cursor_off);
+      yield cursor_on;
+      yield makeBlockFinishedScreenTrial(currentBlock, blockCount);
+      yield cursor_off;
+      currentBlock += 1;
     }
-  }
+  };
+
+  // Main experiment
+  // Push first half and second half of trials to timeline.
+  // The order (which half is negated and which half asserted) is switched at the second participation and switched back at the third participation.
+  // Negated trials first half
+  timeline.push({
+    conditional_function: () =>
+      (globalProps.isNegatedFirst &&
+        !IS_A_PROLIFIC_STUDY &&
+        (globalProps.isFirstParticipation || globalProps.isLastParticipation)) ||
+      (globalProps.isNegatedFirst &&
+        IS_A_PROLIFIC_STUDY &&
+        (IS_STARTING_QUESTIONNAIRE_ENABLED || IS_FINAL_QUESTIONNAIRE_ENABLED)) ||
+      (!globalProps.isNegatedFirst &&
+        !IS_A_PROLIFIC_STUDY &&
+        !globalProps.isFirstParticipation &&
+        !globalProps.isLastParticipation) ||
+      (!globalProps.isNegatedFirst &&
+        IS_A_PROLIFIC_STUDY &&
+        !IS_STARTING_QUESTIONNAIRE_ENABLED &&
+        !IS_FINAL_QUESTIONNAIRE_ENABLED),
+    timeline: Array.from(timelineGenerator(blockCount, true)),
+  });
+  // Asserted trials first half
+  timeline.push({
+    conditional_function: () =>
+      (!globalProps.isNegatedFirst &&
+        !IS_A_PROLIFIC_STUDY &&
+        (globalProps.isFirstParticipation || globalProps.isLastParticipation)) ||
+      (!globalProps.isNegatedFirst &&
+        IS_A_PROLIFIC_STUDY &&
+        (IS_STARTING_QUESTIONNAIRE_ENABLED || IS_FINAL_QUESTIONNAIRE_ENABLED)) ||
+      (globalProps.isNegatedFirst &&
+        !IS_A_PROLIFIC_STUDY &&
+        !globalProps.isFirstParticipation &&
+        !globalProps.isLastParticipation) ||
+      (globalProps.isNegatedFirst &&
+        IS_A_PROLIFIC_STUDY &&
+        !IS_STARTING_QUESTIONNAIRE_ENABLED &&
+        !IS_FINAL_QUESTIONNAIRE_ENABLED),
+    timeline: Array.from(timelineGenerator(blockCount, false)),
+  });
+
   timeline.push(cursor_on);
 
   timeline.push(lastParticipationSurvey);
@@ -823,18 +818,34 @@ export async function run({ assetPaths }) {
   // final screen
   timeline.push({
     type: HtmlButtonResponsePlugin,
-    stimulus: () =>
-      globalProps.instructionLanguage === "en"
-        ? [
-            "<p>Thank you for participating. Continue to submit the results. You will be redirected to prolific.co.</p>",
-          ]
-        : [
-            "<p>Vielen Dank für Ihre Teilnahme!</p><p>Fahren Sie fort, um die Resultate abzusenden. Sie werden anschließend zu prolific.co weitergeleitet.</p>",
-          ],
-    choices: () =>
-      globalProps.instructionLanguage === "en"
-        ? ["Submit and continue to prolific.co"]
-        : ["Resultate absenden und zu prolific.co fortfahren"],
+    stimulus: () => {
+      if (IS_A_PROLIFIC_STUDY) {
+        return globalProps.instructionLanguage === "en"
+          ? [
+              "<p>Thank you for participating. Continue to submit the results. You will be redirected to prolific.co.</p>",
+            ]
+          : [
+              "<p>Vielen Dank für Ihre Teilnahme!</p><p>Fahren Sie fort, um die Resultate abzusenden. Sie werden anschließend zu prolific.co weitergeleitet.</p>",
+            ];
+      } else {
+        return globalProps.instructionLanguage === "en"
+          ? ["<p>Thank you for participating. Continue to submit the results.</p>"]
+          : [
+              "<p>Vielen Dank für Ihre Teilnahme!</p><p>Fahren Sie fort, um die Resultate abzusenden.</p>",
+            ];
+      }
+    },
+    choices: () => {
+      if (IS_A_PROLIFIC_STUDY) {
+        return globalProps.instructionLanguage === "en"
+          ? ["Submit and continue to prolific.co"]
+          : ["Resultate absenden und zu prolific.co fortfahren"];
+      } else {
+        return globalProps.instructionLanguage === "en"
+          ? ["Submit the results"]
+          : ["Resultate absenden"];
+      }
+    },
   });
 
   // Disable fullscreen
