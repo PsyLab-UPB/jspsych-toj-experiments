@@ -13,6 +13,7 @@ import delay from "delay";
 import { ParameterType } from "jspsych";
 import { playAudio } from "../util/audio";
 import { TojPlugin } from "./TojPlugin";
+import { omit } from "lodash";
 
 enum TargetType {
   FIRST = "first",
@@ -133,7 +134,7 @@ export class TojPluginWhichFirst extends TojPlugin {
     let isProbeFirst = trial.soa < 0;
     let correct = isProbeFirst === (response === TargetType.FIRST) || trial.soa === 0;
 
-    const resultData = Object.assign({}, trial, {
+    const resultData = Object.assign({}, omit(trial, ["type", "fixation_mark_html", "probe_element", "reference_element"]), {
       response_key: response === TargetType.FIRST ? trial.first_key : trial.second_key,
       response: response,
       response_correct: correct,
@@ -143,11 +144,6 @@ export class TojPluginWhichFirst extends TojPlugin {
     if (trial.play_feedback) {
       await playAudio(`media/audio/feedback/${correct ? "right" : "wrong"}.wav`);
     }
-
-    // Delete type.jsPsych from resultData because of otherwise occuring
-    // TypeError: cyclic object value (firefox) / TypeError: Converting circular structure to JSON (V8-based)
-    // This deletes possible valuable log data, therefore a better fix might be needed
-    delete resultData.type.jsPsych;
 
     // Finish trial and log data
     this.jsPsych.finishTrial(resultData);
