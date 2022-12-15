@@ -16,13 +16,11 @@ import { TojPlugin } from "./TojPlugin";
 
 enum TargetType {
   FIRST = "first",
-  SECOND = "second"
+  SECOND = "second",
 }
 
-
 export class TojPluginWhichFirst extends TojPlugin {
-
-  static info = <any> {
+  static info = <any>{
     name: "toj-which_first",
     parameters: {
       ...TojPlugin.info.parameters,
@@ -73,10 +71,10 @@ export class TojPluginWhichFirst extends TojPlugin {
         description: "The voice of the instruction ('m' or 'f')",
       },
     },
-  }
+  };
 
   async trial(display_element, trial, on_load) {
-    TojPlugin.current = <any> this;
+    TojPlugin.current = <any>this;
 
     this._appendContainerToDisplayElement(display_element, trial);
     on_load();
@@ -85,7 +83,6 @@ export class TojPluginWhichFirst extends TojPlugin {
     const audioBaseUrl = `media/audio/color-toj-negation/${trial.instruction_language}/${trial.instruction_voice}/`;
     await playAudio(audioBaseUrl + (trial.instruction_negated ? "not" : "now") + ".wav");
     await playAudio(audioBaseUrl + trial.instruction_filename + ".wav");
-
 
     await delay(trial.fixation_time);
 
@@ -131,7 +128,7 @@ export class TojPluginWhichFirst extends TojPlugin {
     // Clear the screen
     display_element.innerHTML = "";
 
-    // the probe is the stimuli that is being instructed to attend. 
+    // the probe is the stimuli that is being instructed to attend.
     // Instruction "not red" --> probe is green. Instruction "now red" --> probe is red.
     let isProbeFirst = trial.soa < 0;
     let correct = isProbeFirst === (response === TargetType.FIRST) || trial.soa === 0;
@@ -147,9 +144,13 @@ export class TojPluginWhichFirst extends TojPlugin {
       await playAudio(`media/audio/feedback/${correct ? "right" : "wrong"}.wav`);
     }
 
+    // Delete type.jsPsych from resultData because of otherwise occuring
+    // TypeError: cyclic object value (firefox) / TypeError: Converting circular structure to JSON (V8-based)
+    // This deletes possible valuable log data, therefore a better fix might be needed
+    delete resultData.type.jsPsych;
+
     // Finish trial and log data
     this.jsPsych.finishTrial(resultData);
-    
   }
 }
 
