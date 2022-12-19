@@ -40,10 +40,10 @@ const soaChoices = [-6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6].map((x) => x * 16.667)
 const soaChoicesTutorial = [-6, -3, 3, 6].map((x) => (x * 16.6667).toFixed(3));
 
 const debugmode = false;
-const IS_A_PROLIFIC_STUDY = true;
+const IS_A_PROLIFIC_STUDY = false;
 
 // is only relevant if IS_A_PROLIFIC_STUDY evaluates to true
-const IS_STARTING_QUESTIONNAIRE_ENABLED = true;
+const IS_STARTING_QUESTIONNAIRE_ENABLED = false;
 const IS_FINAL_QUESTIONNAIRE_ENABLED = false;
 
 class TojTarget {
@@ -214,20 +214,20 @@ export async function run({ assetPaths }) {
 
   var showInstructions = function (jspsych) {
     let participantID = globalProps.participantCode;
-    let isNegatedFirst = participantID.charCodeAt(0) % 2 === 0;
+    let isAssertedFirst = participantID.charCodeAt(0) % 2 === 0;
     let isAnswerKeySwitchEnabled = participantID.charCodeAt(0) % 2 === 0;
 
     Object.assign(globalProps, { isAnswerKeySwitchEnabled: isAnswerKeySwitchEnabled });
     jspsych.data.addProperties({ isAnswerKeySwitchEnabled: isAnswerKeySwitchEnabled });
-    Object.assign(globalProps, { isNegatedFirst: isNegatedFirst });
-    jspsych.data.addProperties({ isNegatedFirst: isNegatedFirst });
+    Object.assign(globalProps, { isAssertedFirst: isAssertedFirst });
+    jspsych.data.addProperties({ isAssertedFirst: isAssertedFirst });
 
     if (debugmode) {
       console.log(`participantID=${globalProps.participantCode}`);
       //console.log(`isAnswerKeySwitchEnabled=${isAnswerKeySwitchEnabled}`);
       console.log(`isAnswerKeySwitchEnabled=${globalProps.isAnswerKeySwitchEnabled}`);
-      //console.log(`isNegatedFirst=${isNegatedFirst}`);
-      console.log(`isNegatedFirst=${globalProps.isNegatedFirst}`);
+      //console.log(`isAssertedFirst=${isAssertedFirst}`);
+      console.log(`isAssertedFirst=${globalProps.isAssertedFirst}`);
     }
 
     let instructionsWithoutKeySwitch = {
@@ -472,18 +472,14 @@ export async function run({ assetPaths }) {
   // Tutorial
   let tutorialAlreadyCompleted = false;
   let numberOfTrialsTutorial = 30;
+  let numberOfTrialsRepeatedTutorial = 10;
   let correctResponsesTutorial = 0;
   let correctResponsesLimitTutorial = Math.floor(0.75 * numberOfTrialsTutorial);
+  let correctResponsesLimitRepeatedTutorial = Math.floor(0.75 * numberOfTrialsRepeatedTutorial);
   let maxRepetitionsTutorial = 2;
-  if (
-    !IS_A_PROLIFIC_STUDY & !globalProps.isFirstParticipation ||
-    IS_A_PROLIFIC_STUDY & !IS_STARTING_QUESTIONNAIRE_ENABLED
-  ) {
-    numberOfTrialsTutorial = 10;
-    correctResponsesLimitTutorial = Math.floor(0.75 * numberOfTrialsTutorial);
-  }
 
   let trialsTutorial = trials.slice(0, debugmode ? 10 : numberOfTrialsTutorial);
+  let trialsRepeatedTutorial = trials.slice(0, debugmode ? 10 : numberOfTrialsRepeatedTutorial);
 
   // Repeat Tutorial until participant gives enough correct answers (correctResponsesLimitTutorial).
   // After 2 failed tries (maxRepetitionsTutorial) the experiment ends immediately.
@@ -491,7 +487,7 @@ export async function run({ assetPaths }) {
     timeline.push(
       cursor_on,
       {
-        conditional_function: () => (index > 1) & !tutorialAlreadyCompleted,
+        conditional_function: () => index > 1 && !tutorialAlreadyCompleted,
         timeline: [
           {
             type: HtmlButtonResponsePlugin,
@@ -505,15 +501,27 @@ export async function run({ assetPaths }) {
       },
       cursor_off,
       {
-        conditional_function: () => correctResponsesTutorial < correctResponsesLimitTutorial,
+        conditional_function: () =>
+          globalProps.isFirstParticipation &&
+          correctResponsesTutorial < correctResponsesLimitTutorial,
         timeline: [toj],
         timeline_variables: trialsTutorial,
+        play_feedback: true,
+      },
+      {
+        conditional_function: () =>
+          !globalProps.isFirstParticipation &&
+          correctResponsesTutorial < correctResponsesLimitRepeatedTutorial,
+        timeline: [toj],
+        timeline_variables: trialsRepeatedTutorial,
         play_feedback: true,
       },
       cursor_on,
       {
         conditional_function: () =>
-          (correctResponsesTutorial >= correctResponsesLimitTutorial) & !tutorialAlreadyCompleted,
+          globalProps.isFirstParticipation &&
+          correctResponsesTutorial >= correctResponsesLimitTutorial &&
+          !tutorialAlreadyCompleted,
         timeline: [
           {
             type: HtmlButtonResponsePlugin,
@@ -543,8 +551,41 @@ export async function run({ assetPaths }) {
       },
       {
         conditional_function: () =>
-          (correctResponsesTutorial < correctResponsesLimitTutorial) &
-          (index < maxRepetitionsTutorial),
+          !globalProps.isFirstParticipation &&
+          correctResponsesTutorial >= correctResponsesLimitRepeatedTutorial &&
+          !tutorialAlreadyCompleted,
+        timeline: [
+          {
+            type: HtmlButtonResponsePlugin,
+            stimulus: () =>
+              globalProps.instructionLanguage === "en"
+                ? [
+                    `<p>You finished the tutorial with ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial} correct responses.</p>`,
+                  ]
+                : [
+                    `<p>Sie haben das Tutorial mit ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial} richtigen Antworten abgeschlossen.</p>`,
+                  ],
+            choices: () =>
+              globalProps.instructionLanguage === "en"
+                ? ["Continue to the experiment"]
+                : ["Weiter zum Experiment"],
+          },
+          {
+            type: CallFunctionPlugin,
+            func: () => {
+              tutorialAlreadyCompleted = true;
+              jsPsych.data.addProperties({
+                tutorialCompletedSuccessfully: true,
+              });
+            },
+          },
+        ],
+      },
+      {
+        conditional_function: () =>
+          globalProps.isFirstParticipation &&
+          correctResponsesTutorial < correctResponsesLimitTutorial &&
+          index < maxRepetitionsTutorial,
         timeline: [
           {
             type: HtmlButtonResponsePlugin,
@@ -569,8 +610,36 @@ export async function run({ assetPaths }) {
       },
       {
         conditional_function: () =>
-          (correctResponsesTutorial < correctResponsesLimitTutorial) &
-          (index === maxRepetitionsTutorial),
+          !globalProps.isFirstParticipation &&
+          correctResponsesTutorial < correctResponsesLimitRepeatedTutorial &&
+          index < maxRepetitionsTutorial,
+        timeline: [
+          {
+            type: HtmlButtonResponsePlugin,
+            stimulus: () =>
+              globalProps.instructionLanguage === "en"
+                ? [
+                    `<p>You made too many mistakes in the tutorial (correct responses: ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial}). Please repeat it. You need at least ${correctResponsesLimitRepeatedTutorial} correct responses to go on with the experiment.</p>`,
+                  ]
+                : [
+                    `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial}). Bitte wiederholen Sie das Tutorial. Sie benötigen mindestens ${correctResponsesLimitRepeatedTutorial} korrekte Antworten um mit dem Experiment fortzufahren.</p>`,
+                  ],
+            choices: () =>
+              globalProps.instructionLanguage === "en"
+                ? ["Repeat tutorial"]
+                : ["Tutorial wiederholen"],
+          },
+          {
+            type: CallFunctionPlugin,
+            func: () => (correctResponsesTutorial = 0),
+          },
+        ],
+      },
+      {
+        conditional_function: () =>
+          globalProps.isFirstParticipation &&
+          correctResponsesTutorial < correctResponsesLimitTutorial &&
+          index === maxRepetitionsTutorial,
         timeline: [
           {
             type: HtmlButtonResponsePlugin,
@@ -581,6 +650,43 @@ export async function run({ assetPaths }) {
                   ]
                 : [
                     `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Bitte betätigen Sie die untenstehende Schaltfläche um das Experiment zu beenden.</p>`,
+                  ],
+            choices: () =>
+              globalProps.instructionLanguage === "en"
+                ? ["Finish experiment"]
+                : ["Experiment abschließen"],
+          },
+          {
+            type: CallFunctionPlugin,
+            func: () =>
+              jsPsych.data.addProperties({
+                tutorialCompletedSuccessfully: false,
+              }),
+          },
+          {
+            type: CallFunctionPlugin,
+            func: () =>
+              globalProps.instructionLanguage === "en"
+                ? [jsPsych.endExperiment("You have finished the experiment.")]
+                : [jsPsych.endExperiment("Sie haben das Experiment beendet.")],
+          },
+        ],
+      },
+      {
+        conditional_function: () =>
+          !globalProps.isFirstParticipation &&
+          correctResponsesTutorial < correctResponsesLimitRepeatedTutorial &&
+          index === maxRepetitionsTutorial,
+        timeline: [
+          {
+            type: HtmlButtonResponsePlugin,
+            stimulus: () =>
+              globalProps.instructionLanguage === "en"
+                ? [
+                    `<p>You made too many mistakes in the tutorial (correct responses: ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial}). Please click the button below to finish the experiment.</p>`,
+                  ]
+                : [
+                    `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial}). Bitte betätigen Sie die untenstehende Schaltfläche um das Experiment zu beenden.</p>`,
                   ],
             choices: () =>
               globalProps.instructionLanguage === "en"
@@ -747,13 +853,13 @@ export async function run({ assetPaths }) {
   timeline.push(cursor_off);
 
   // Generator function to create the main experiment timeline
-  const timelineGenerator = function* (blockCount, isNegatedFirst) {
+  const timelineGenerator = function* (blockCount, isAssertedFirst) {
     let currentBlock = 1;
     while (currentBlock <= blockCount) {
       yield {
         timeline: [toj],
         // Alternate between first half and second half of trials
-        timeline_variables: isNegatedFirst
+        timeline_variables: isAssertedFirst
           ? currentBlock <= blockCount / 2
             ? trialsNegated
             : trialsAsserted
@@ -775,17 +881,17 @@ export async function run({ assetPaths }) {
   // Negated trials first half
   timeline.push({
     conditional_function: () =>
-      (globalProps.isNegatedFirst &&
+      (globalProps.isAssertedFirst &&
         !IS_A_PROLIFIC_STUDY &&
         (globalProps.isFirstParticipation || globalProps.isLastParticipation)) ||
-      (globalProps.isNegatedFirst &&
+      (globalProps.isAssertedFirst &&
         IS_A_PROLIFIC_STUDY &&
         (IS_STARTING_QUESTIONNAIRE_ENABLED || IS_FINAL_QUESTIONNAIRE_ENABLED)) ||
-      (!globalProps.isNegatedFirst &&
+      (!globalProps.isAssertedFirst &&
         !IS_A_PROLIFIC_STUDY &&
         !globalProps.isFirstParticipation &&
         !globalProps.isLastParticipation) ||
-      (!globalProps.isNegatedFirst &&
+      (!globalProps.isAssertedFirst &&
         IS_A_PROLIFIC_STUDY &&
         !IS_STARTING_QUESTIONNAIRE_ENABLED &&
         !IS_FINAL_QUESTIONNAIRE_ENABLED),
@@ -794,17 +900,17 @@ export async function run({ assetPaths }) {
   // Asserted trials first half
   timeline.push({
     conditional_function: () =>
-      (!globalProps.isNegatedFirst &&
+      (!globalProps.isAssertedFirst &&
         !IS_A_PROLIFIC_STUDY &&
         (globalProps.isFirstParticipation || globalProps.isLastParticipation)) ||
-      (!globalProps.isNegatedFirst &&
+      (!globalProps.isAssertedFirst &&
         IS_A_PROLIFIC_STUDY &&
         (IS_STARTING_QUESTIONNAIRE_ENABLED || IS_FINAL_QUESTIONNAIRE_ENABLED)) ||
-      (globalProps.isNegatedFirst &&
+      (globalProps.isAssertedFirst &&
         !IS_A_PROLIFIC_STUDY &&
         !globalProps.isFirstParticipation &&
         !globalProps.isLastParticipation) ||
-      (globalProps.isNegatedFirst &&
+      (globalProps.isAssertedFirst &&
         IS_A_PROLIFIC_STUDY &&
         !IS_STARTING_QUESTIONNAIRE_ENABLED &&
         !IS_FINAL_QUESTIONNAIRE_ENABLED),
