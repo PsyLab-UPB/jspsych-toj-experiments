@@ -2,8 +2,8 @@
  * @title Color TOJ Neg 7
  * @description Experiment on negation in TVA instructions (dual-colored version with two stimuli, a merge of experiment color-toj-negation-06.js as a skeleton (meta data collection) and experiment color-toj-negation-02.js for trial presentation (display of two stimuli instead of two stimuli pairs). This experiment is a replication of color-toj-negation-02.js with trials ordered in two halfs negations/assertions. Aside from that, following improvements / changes were made:
  * - Tutorial has to be repeated if a certain threshhold of correct answers is not passed. If the participant fails the tutorial twice, the experiment ends immediately.
- * - Generate trials which are asserted only in one half of the experiment and negated only in the other half of the experiment. Which half is asserted and which negated depends on the participant code (that is generated randomly initially) and if its the first, secocnd, or third participation of the participant (halfes are switched on every participation).
- * @version 1.0-prolific-p1
+ * - Generate trials which are asserted only in one half of the experiment and negated only in the other half of the experiment. Which half is asserted and which negated depends on the participant code (that is generated randomly initially) and if its the first, secocnd, or third participation of the participant (halves are switched on every participation).
+ * @version 0.1
  * @imageDir images/common
  * @audioDir audio/color-toj-negation,audio/feedback
  * @miscDir misc
@@ -27,7 +27,7 @@ import { Scaler } from "./util/Scaler";
 import { createBarStimulusGrid } from "./util/barStimuli";
 import { setAbsolutePosition } from "./util/positioning";
 import { LabColor } from "./util/colors";
-import { addIntroduction } from "./util/introduction-ctoj-neg06";
+import { addIntroduction } from "./util/introduction-ctoj-neg07";
 import CallFunctionPlugin from "@jspsych/plugin-call-function";
 import SurveyTextPlugin from "@jspsych/plugin-survey-text";
 import FullscreenPlugin from "@jspsych/plugin-fullscreen";
@@ -531,11 +531,11 @@ export async function run({ assetPaths }) {
             stimulus: () =>
               globalProps.instructionLanguage === "en"
                 ? [
-                    `<p>You finished the tutorial with ${correctResponsesTutorial}/${numberOfTrialsTutorial} correct responses.</p>`,
-                  ]
+                  `<p>You finished the tutorial with ${correctResponsesTutorial}/${numberOfTrialsTutorial} correct responses.</p>`,
+                ]
                 : [
-                    `<p>Sie haben das Tutorial mit ${correctResponsesTutorial}/${numberOfTrialsTutorial} richtigen Antworten abgeschlossen.</p>`,
-                  ],
+                  `<p>Sie haben das Tutorial mit ${correctResponsesTutorial}/${numberOfTrialsTutorial} richtigen Antworten abgeschlossen.</p>`,
+                ],
             choices: () =>
               globalProps.instructionLanguage === "en"
                 ? ["Continue to the experiment"]
@@ -563,11 +563,11 @@ export async function run({ assetPaths }) {
             stimulus: () =>
               globalProps.instructionLanguage === "en"
                 ? [
-                    `<p>You finished the tutorial with ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial} correct responses.</p>`,
-                  ]
+                  `<p>You finished the tutorial with ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial} correct responses.</p>`,
+                ]
                 : [
-                    `<p>Sie haben das Tutorial mit ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial} richtigen Antworten abgeschlossen.</p>`,
-                  ],
+                  `<p>Sie haben das Tutorial mit ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial} richtigen Antworten abgeschlossen.</p>`,
+                ],
             choices: () =>
               globalProps.instructionLanguage === "en"
                 ? ["Continue to the experiment"]
@@ -595,11 +595,11 @@ export async function run({ assetPaths }) {
             stimulus: () =>
               globalProps.instructionLanguage === "en"
                 ? [
-                    `<p>You made too many mistakes in the tutorial (correct responses: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Please repeat it. You need at least ${correctResponsesLimitTutorial} correct responses to go on with the experiment.</p>`,
-                  ]
+                  `<p>You made too many mistakes in the tutorial (correct responses: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Please repeat it. You need at least ${correctResponsesLimitTutorial} correct responses to go on with the experiment.</p>`,
+                ]
                 : [
-                    `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Bitte wiederholen Sie das Tutorial. Sie benötigen mindestens ${correctResponsesLimitTutorial} korrekte Antworten um mit dem Experiment fortzufahren.</p>`,
-                  ],
+                  `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Bitte wiederholen Sie das Tutorial. Sie benötigen mindestens ${correctResponsesLimitTutorial} korrekte Antworten um mit dem Experiment fortzufahren.</p>`,
+                ],
             choices: () =>
               globalProps.instructionLanguage === "en"
                 ? ["Repeat tutorial"]
@@ -622,11 +622,11 @@ export async function run({ assetPaths }) {
             stimulus: () =>
               globalProps.instructionLanguage === "en"
                 ? [
-                    `<p>You made too many mistakes in the tutorial (correct responses: ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial}). Please repeat it. You need at least ${correctResponsesLimitRepeatedTutorial} correct responses to go on with the experiment.</p>`,
-                  ]
+                  `<p>You made too many mistakes in the tutorial (correct responses: ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial}). Please repeat it. You need at least ${correctResponsesLimitRepeatedTutorial} correct responses to go on with the experiment.</p>`,
+                ]
                 : [
-                    `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial}). Bitte wiederholen Sie das Tutorial. Sie benötigen mindestens ${correctResponsesLimitRepeatedTutorial} korrekte Antworten um mit dem Experiment fortzufahren.</p>`,
-                  ],
+                  `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial}). Bitte wiederholen Sie das Tutorial. Sie benötigen mindestens ${correctResponsesLimitRepeatedTutorial} korrekte Antworten um mit dem Experiment fortzufahren.</p>`,
+                ],
             choices: () =>
               globalProps.instructionLanguage === "en"
                 ? ["Repeat tutorial"]
@@ -649,11 +649,11 @@ export async function run({ assetPaths }) {
             stimulus: () =>
               globalProps.instructionLanguage === "en"
                 ? [
-                    `<p>You made too many mistakes in the tutorial (correct responses: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Please click the button below to finish the experiment.</p>`,
-                  ]
+                  `<p>You made too many mistakes in the tutorial (correct responses: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Please click the button below to finish the experiment.</p>`,
+                ]
                 : [
-                    `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Bitte betätigen Sie die untenstehende Schaltfläche um das Experiment zu beenden.</p>`,
-                  ],
+                  `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Bitte betätigen Sie die untenstehende Schaltfläche um das Experiment zu beenden.</p>`,
+                ],
             choices: () =>
               globalProps.instructionLanguage === "en"
                 ? ["Finish experiment"]
@@ -686,11 +686,11 @@ export async function run({ assetPaths }) {
             stimulus: () =>
               globalProps.instructionLanguage === "en"
                 ? [
-                    `<p>You made too many mistakes in the tutorial (correct responses: ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial}). Please click the button below to finish the experiment.</p>`,
-                  ]
+                  `<p>You made too many mistakes in the tutorial (correct responses: ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial}). Please click the button below to finish the experiment.</p>`,
+                ]
                 : [
-                    `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial}). Bitte betätigen Sie die untenstehende Schaltfläche um das Experiment zu beenden.</p>`,
-                  ],
+                  `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial}). Bitte betätigen Sie die untenstehende Schaltfläche um das Experiment zu beenden.</p>`,
+                ],
             choices: () =>
               globalProps.instructionLanguage === "en"
                 ? ["Finish experiment"]
@@ -778,8 +778,8 @@ export async function run({ assetPaths }) {
             ? trialsNegated
             : trialsAsserted
           : currentBlock <= blockCount / 2
-          ? trialsAsserted
-          : trialsNegated,
+            ? trialsAsserted
+            : trialsNegated,
         randomize_order: true,
       };
       yield cursor_on;
@@ -847,17 +847,17 @@ export async function run({ assetPaths }) {
       if (IS_A_PROLIFIC_STUDY) {
         return globalProps.instructionLanguage === "en"
           ? [
-              "<p>Thank you for participating. Continue to submit the results. You will be redirected to prolific.co.</p>",
-            ]
+            "<p>Thank you for participating. Continue to submit the results. You will be redirected to prolific.co.</p>",
+          ]
           : [
-              "<p>Vielen Dank für Ihre Teilnahme!</p><p>Fahren Sie fort, um die Resultate abzusenden. Sie werden anschließend zu prolific.co weitergeleitet.</p>",
-            ];
+            "<p>Vielen Dank für Ihre Teilnahme!</p><p>Fahren Sie fort, um die Resultate abzusenden. Sie werden anschließend zu prolific.co weitergeleitet.</p>",
+          ];
       } else {
         return globalProps.instructionLanguage === "en"
           ? ["<p>Thank you for participating. Continue to submit the results.</p>"]
           : [
-              "<p>Vielen Dank für Ihre Teilnahme!</p><p>Fahren Sie fort, um die Resultate abzusenden.</p>",
-            ];
+            "<p>Vielen Dank für Ihre Teilnahme!</p><p>Fahren Sie fort, um die Resultate abzusenden.</p>",
+          ];
       }
     },
     choices: () => {
