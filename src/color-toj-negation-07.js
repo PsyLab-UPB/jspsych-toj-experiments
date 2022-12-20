@@ -326,9 +326,8 @@ export async function run({ assetPaths }) {
     soa: soaChoicesTutorial,
   };
   const factorsDebug = {
-    isInstructionNegated: [true, false],
+    isInstructionNegated: [false],
     soa: [-6, 6].map((x) => (x * 16.6667).toFixed(3)),
-    sequenceLength: [1, 2],
   };
 
   // create arrays with negated and asserted trials
@@ -338,7 +337,7 @@ export async function run({ assetPaths }) {
   let blockCount = 6;
 
   // only used for tutorial and debugging in this experiment
-  let trials = jsPsych.randomization.factorial(factorsTutorial, 2);
+  let trials = jsPsych.randomization.factorial(factorsTutorial, 10);
 
   if (debugmode) {
     trials = jsPsych.randomization.factorial(factorsDebug, repetitions);
@@ -480,6 +479,12 @@ export async function run({ assetPaths }) {
 
   let trialsTutorial = trials.slice(0, debugmode ? 10 : numberOfTrialsTutorial);
   let trialsRepeatedTutorial = trials.slice(0, debugmode ? 10 : numberOfTrialsRepeatedTutorial);
+
+  console.assert(trials.length >= numberOfTrialsTutorial, 'there are fewer tutorial trials than requested by `numberOfTrialsTutorial`')
+  console.assert(trials.length >= numberOfTrialsRepeatedTutorial, 'there are fewer tutorial trials than requested by `numberOfTrialsRepeatedTutorial`')
+  if (debugmode) {
+    console.log("trials.length=" + trials.length)
+  }
 
   // Repeat Tutorial until participant gives enough correct answers (correctResponsesLimitTutorial).
   // After 2 failed tries (maxRepetitionsTutorial) the experiment ends immediately.
@@ -759,11 +764,6 @@ export async function run({ assetPaths }) {
     ],
   };
 
-  if (debugmode) {
-    trials = trials.slice(0, 16); // only relevant if the original factors are used, resulting in a very large cartesian product
-    debugPrint(trials, factors);
-  }
-
   timeline.push(cursor_off);
 
   // Generator function to create the main experiment timeline
@@ -830,6 +830,11 @@ export async function run({ assetPaths }) {
         !IS_FINAL_QUESTIONNAIRE_ENABLED),
     timeline: Array.from(timelineGenerator(blockCount, false)),
   });
+
+  if (debugmode) {
+    console.log("length of a block A: " + Array.from(timelineGenerator(blockCount, false)).length)
+    console.log("length of a block N: " + Array.from(timelineGenerator(blockCount, true)).length)
+  }
 
   timeline.push(cursor_on);
 
