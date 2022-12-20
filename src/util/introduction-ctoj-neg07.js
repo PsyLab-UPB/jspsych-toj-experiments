@@ -60,6 +60,7 @@ export function addIntroduction(jspsych, timeline, options) {
       isFirstParticipation: false,
       isLastParticipation: false,
       participantCode: "ABCD",
+      participantCodeMD5: md5("ABCD"),
     };
   }
 
@@ -130,7 +131,7 @@ export function addIntroduction(jspsych, timeline, options) {
         }
         const newProps = {
           instructionLanguage: responses["participant_language"] === "Deutsch" ? "de" : "en",
-          participantCode: md5(participant_code)
+          participantCodeMD5: md5(participant_code)
         };
         Object.assign(globalProps, newProps);
         jspsych.data.addProperties(newProps);
@@ -140,6 +141,42 @@ export function addIntroduction(jspsych, timeline, options) {
       },
     });
   }
+
+  // standalone version: if this is a participant's first session: Participant code announcement / input
+  timeline.push({
+    conditional_function: () => !options.isAProlificStudy && globalProps.isFirstParticipation,
+    timeline: [
+      {
+        type: HtmlButtonResponsePlugin,
+        stimulus: () => {
+          const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ123456789", 4);
+          const participantCode = nanoid();
+          const newProps = {
+            participantCode,
+            participantCodeMD5: md5(participantCode)
+          };
+          Object.assign(globalProps, newProps);
+          jspsych.data.addProperties(newProps);
+
+          if (globalProps.instructionLanguage === "en") {
+            return (
+              `<p>Your participant code is <b>${participantCode}</b>.` +
+              "</p><p><b>Important:</b> Please make sure to write it down somewhere. You will need it if you will do the second session or multiple sessions and for claiming your course credit!"
+            );
+          } else {
+            return (
+              `<p>Ihr Teilnahme-Code ist <b>${participantCode}</b>.` +
+              "</p><p><b>Wichtig:</b> Bitte vergessen Sie nicht, sich Ihren Code aufzuschreiben! Sie benötigen ihn, um die zweite Sitzung und ggf. weitere Sitzungen zu machen und Ihre Versuchspersonenstunden gutgeschrieben zu bekommen!"
+            );
+          }
+        },
+        choices: () =>
+          globalProps.instructionLanguage === "en"
+            ? ["Done, let's continue"]
+            : ["Ist gemacht, weiter!"],
+      },
+    ],
+  });
 
   // if user is a returning participant: prompt to enter participant code
   timeline.push({
@@ -164,8 +201,10 @@ export function addIntroduction(jspsych, timeline, options) {
         },
         on_finish: (trial) => {
           const responses = trial.response;
+
           const newProps = {
             participantCode: responses.Q0,
+            participantCodeMD5: md5(responses.Q0)
           };
           Object.assign(globalProps, newProps);
           jspsych.data.addProperties(newProps);
@@ -271,39 +310,6 @@ export function addIntroduction(jspsych, timeline, options) {
       globalProps.instructionLanguage === "en"
         ? ["Computer sounds are enabled"]
         : ["Der Ton ist eingeschaltet"],
-  });
-
-  // Participant code announcement / input
-  timeline.push({
-    conditional_function: () => !options.isAProlificStudy && globalProps.isFirstParticipation,
-    timeline: [
-      {
-        type: HtmlButtonResponsePlugin,
-        stimulus: () => {
-          const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ123456789", 4);
-          const participantCode = nanoid();
-          const newProps = { participantCode };
-          Object.assign(globalProps, newProps);
-          jspsych.data.addProperties(newProps);
-
-          if (globalProps.instructionLanguage === "en") {
-            return (
-              `<p>Your participant code is <b>${participantCode}</b>.` +
-              "</p><p><b>Important:</b> Please make sure to write it down somewhere. You will need it if you will do the second session or multiple sessions and for claiming your course credit!"
-            );
-          } else {
-            return (
-              `<p>Ihr Teilnahme-Code ist <b>${participantCode}</b>.` +
-              "</p><p><b>Wichtig:</b> Bitte vergessen Sie nicht, sich Ihren Code aufzuschreiben! Sie benötigen ihn, um die zweite Sitzung und ggf. weitere Sitzungen zu machen und Ihre Versuchspersonenstunden gutgeschrieben zu bekommen!"
-            );
-          }
-        },
-        choices: () =>
-          globalProps.instructionLanguage === "en"
-            ? ["Done, let's continue"]
-            : ["Ist gemacht, weiter!"],
-      },
-    ],
   });
 
   // Ask for last participation

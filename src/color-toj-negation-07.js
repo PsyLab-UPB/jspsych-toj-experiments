@@ -213,10 +213,17 @@ export async function run({ assetPaths }) {
   });
 
   var showInstructions = function (jspsych) {
-    let participantID = globalProps.participantCode;
-    let isAssertedFirst = participantID.charCodeAt(0) % 2 === 0;
-    let isAnswerKeySwitchEnabled = participantID.charCodeAt(0) % 2 === 0;
 
+    // get MD5 hash of the participant code and use the last hex number of the hash to assign the participant to a treatment group
+    // slice off last digit of the hash to assign to the treatment group. 
+    // works for exactly four treatment groups
+    let participantCodeMD5 = globalProps.participantCodeMD5;
+    let treatmentGroupNumber = Number('0x'.concat(participantCodeMD5.slice(-1))) % 4;
+    let isAssertedFirst = treatmentGroupNumber % 2 === 0;
+    let isAnswerKeySwitchEnabled = parseInt(treatmentGroupNumber / 2) === 1;
+
+    Object.assign(globalProps, { treatmentGroupNumber: treatmentGroupNumber });
+    jspsych.data.addProperties({ treatmentGroupNumber: treatmentGroupNumber });
     Object.assign(globalProps, { isAnswerKeySwitchEnabled: isAnswerKeySwitchEnabled });
     jspsych.data.addProperties({ isAnswerKeySwitchEnabled: isAnswerKeySwitchEnabled });
     Object.assign(globalProps, { isAssertedFirst: isAssertedFirst });
@@ -224,9 +231,9 @@ export async function run({ assetPaths }) {
 
     if (debugmode) {
       console.log(`participantID=${globalProps.participantCode}`);
-      //console.log(`isAnswerKeySwitchEnabled=${isAnswerKeySwitchEnabled}`);
+      console.log('participantCodeMD5=' + globalProps.participantCodeMD5);
+      console.log('treatmentGroupNumber=' + globalProps.treatmentGroupNumber);
       console.log(`isAnswerKeySwitchEnabled=${globalProps.isAnswerKeySwitchEnabled}`);
-      //console.log(`isAssertedFirst=${isAssertedFirst}`);
       console.log(`isAssertedFirst=${globalProps.isAssertedFirst}`);
     }
 
@@ -327,6 +334,7 @@ export async function run({ assetPaths }) {
   };
   const factorsDebug = {
     isInstructionNegated: [false],
+    probeLeft: [true, false],
     soa: [-6, 6].map((x) => (x * 16.6667).toFixed(3)),
   };
 
@@ -340,7 +348,7 @@ export async function run({ assetPaths }) {
   let trials = jsPsych.randomization.factorial(factorsTutorial, 10);
 
   if (debugmode) {
-    trials = jsPsych.randomization.factorial(factorsDebug, repetitions);
+    trials = jsPsych.randomization.factorial(factorsDebug, 20);
   }
 
   const touchAdapterLeft = new TouchAdapter(leftKey);
@@ -470,15 +478,15 @@ export async function run({ assetPaths }) {
 
   // Tutorial
   let tutorialAlreadyCompleted = false;
-  let numberOfTrialsTutorial = 30;
-  let numberOfTrialsRepeatedTutorial = 10;
+  let numberOfTrialsTutorial = debugmode ? 10 : 30;
+  let numberOfTrialsRepeatedTutorial = debugmode ? 10 : 10;
   let correctResponsesTutorial = 0;
   let correctResponsesLimitTutorial = Math.floor(0.75 * numberOfTrialsTutorial);
   let correctResponsesLimitRepeatedTutorial = Math.floor(0.75 * numberOfTrialsRepeatedTutorial);
   let maxRepetitionsTutorial = 2;
 
-  let trialsTutorial = trials.slice(0, debugmode ? 10 : numberOfTrialsTutorial);
-  let trialsRepeatedTutorial = trials.slice(0, debugmode ? 10 : numberOfTrialsRepeatedTutorial);
+  let trialsTutorial = trials.slice(0, numberOfTrialsTutorial);
+  let trialsRepeatedTutorial = trials.slice(0, numberOfTrialsRepeatedTutorial);
 
   console.assert(trials.length >= numberOfTrialsTutorial, 'there are fewer tutorial trials than requested by `numberOfTrialsTutorial`')
   console.assert(trials.length >= numberOfTrialsRepeatedTutorial, 'there are fewer tutorial trials than requested by `numberOfTrialsRepeatedTutorial`')
