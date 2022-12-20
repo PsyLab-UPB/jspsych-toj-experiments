@@ -556,7 +556,7 @@ export async function run({ assetPaths }) {
                   `<p>You finished the tutorial with ${correctResponsesTutorial}/${numberOfTrialsTutorial} correct responses.</p>`,
                 ]
                 : [
-                  `<p>Sie haben das Tutorial mit ${correctResponsesTutorial}/${numberOfTrialsTutorial} richtigen Antworten abgeschlossen.</p>`,
+                  `<p>Sie haben die Übungsrunde mit ${correctResponsesTutorial}/${numberOfTrialsTutorial} richtigen Antworten abgeschlossen.</p>`,
                 ],
             choices: () =>
               globalProps.instructionLanguage === "en"
@@ -588,7 +588,7 @@ export async function run({ assetPaths }) {
                   `<p>You finished the tutorial with ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial} correct responses.</p>`,
                 ]
                 : [
-                  `<p>Sie haben das Tutorial mit ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial} richtigen Antworten abgeschlossen.</p>`,
+                  `<p>Sie haben die Übungsrunde mit ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial} richtigen Antworten abgeschlossen.</p>`,
                 ],
             choices: () =>
               globalProps.instructionLanguage === "en"
@@ -617,15 +617,17 @@ export async function run({ assetPaths }) {
             stimulus: () =>
               globalProps.instructionLanguage === "en"
                 ? [
-                  `<p>You made too many mistakes in the tutorial (correct responses: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Please repeat it. You need at least ${correctResponsesLimitTutorial} correct responses to go on with the experiment.</p>`,
+                  `<p>${correctResponsesTutorial} of ${numberOfTrialsTutorial} responses were correct. 
+                  You need at least ${correctResponsesLimitTutorial} correct responses to go on with the experiment.</p>`,
                 ]
                 : [
-                  `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Bitte wiederholen Sie das Tutorial. Sie benötigen mindestens ${correctResponsesLimitTutorial} korrekte Antworten um mit dem Experiment fortzufahren.</p>`,
+                  `<p>${correctResponsesTutorial} von ${numberOfTrialsTutorial} Antworten waren korrekt. 
+                  Sie benötigen mindestens ${correctResponsesLimitTutorial} korrekte Antworten um mit dem Experiment fortzufahren.</p>`,
                 ],
             choices: () =>
               globalProps.instructionLanguage === "en"
-                ? ["Repeat tutorial"]
-                : ["Tutorial wiederholen"],
+                ? ["Show instructions and repeat tutorial"]
+                : ["Anleitung anzeigen und Übungsrunde wiederholen"],
           },
           {
             type: CallFunctionPlugin,
@@ -644,15 +646,16 @@ export async function run({ assetPaths }) {
             stimulus: () =>
               globalProps.instructionLanguage === "en"
                 ? [
-                  `<p>You made too many mistakes in the tutorial (correct responses: ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial}). Please repeat it. You need at least ${correctResponsesLimitRepeatedTutorial} correct responses to go on with the experiment.</p>`,
+                  `<p>${correctResponsesTutorial} of ${numberOfTrialsRepeatedTutorial} responses were correct. You need at least ${correctResponsesLimitRepeatedTutorial} correct responses to go on with the experiment.</p>`,
                 ]
                 : [
-                  `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial}). Bitte wiederholen Sie das Tutorial. Sie benötigen mindestens ${correctResponsesLimitRepeatedTutorial} korrekte Antworten um mit dem Experiment fortzufahren.</p>`,
+                  `<p>${correctResponsesTutorial} von ${numberOfTrialsRepeatedTutorial} Antworten waren korrekt. 
+                  Sie benötigen mindestens ${correctResponsesLimitRepeatedTutorial} korrekte Antworten um mit dem Experiment fortzufahren.</p>`,
                 ],
             choices: () =>
               globalProps.instructionLanguage === "en"
-                ? ["Repeat tutorial"]
-                : ["Tutorial wiederholen"],
+                ? ["Show instructions and repeat tutorial"]
+                : ["Anleitung anzeigen und Übungsrunde wiederholen"],
           },
           {
             type: CallFunctionPlugin,
@@ -671,15 +674,25 @@ export async function run({ assetPaths }) {
             stimulus: () =>
               globalProps.instructionLanguage === "en"
                 ? [
-                  `<p>You made too many mistakes in the tutorial (correct responses: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Please click the button below to finish the experiment.</p>`,
+                  `<p>${correctResponsesTutorial} of ${numberOfTrialsTutorial} responses were correct. 
+                  You need at least ${correctResponsesLimitTutorial} correct responses to go on with the experiment. 
+                  Please try again later. 
+                  Do you have any comprehension questions? 
+                  Did you encounter technical issues? 
+                  Then please refer to the study conductor: ngoc.chi.banh@uni-paderborn.de</p>`,
                 ]
                 : [
-                  `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsTutorial}). Bitte betätigen Sie die untenstehende Schaltfläche um das Experiment zu beenden.</p>`,
+                  `<p>${correctResponsesTutorial}/${numberOfTrialsTutorial} der Antworten waren korrekt. 
+                  Sie benötigen mindestens ${correctResponsesLimitTutorial} korrekte Antworten um mit dem Experiment fortzufahren. 
+                  Bitte versuchen Sie es zu einem späteren Zeitpunkt nochmal. 
+                  Haben Sie Verständnisfragen? 
+                  Hatten Sie technische Schwierigkeiten? 
+                  Dann wenden Sie sich bitte an die Versuchsleitung: ngoc.chi.banh@uni-paderborn.de</p>`,
                 ],
             choices: () =>
               globalProps.instructionLanguage === "en"
                 ? ["Finish experiment"]
-                : ["Experiment abschließen"],
+                : ["Experiment beenden"],
           },
           {
             type: CallFunctionPlugin,
@@ -708,10 +721,19 @@ export async function run({ assetPaths }) {
             stimulus: () =>
               globalProps.instructionLanguage === "en"
                 ? [
-                  `<p>You made too many mistakes in the tutorial (correct responses: ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial}). Please click the button below to finish the experiment.</p>`,
+                  `<p>${correctResponsesTutorial} of ${numberOfTrialsRepeatedTutorial} responses were correct. 
+                  You need at least ${correctResponsesLimitRepeatedTutorial} correct responses to go on with the experiment. 
+                  Please try again later. 
+                  Do you have any comprehension questions? 
+                  Did you encounter technical issues? 
+                  Then please refer to the study conductor: ngoc.chi.banh@uni-paderborn.de</p>`,
                 ]
                 : [
-                  `<p>Sie haben zu viele Fehler im Tutorial gemacht (richtige Antworten: ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial}). Bitte betätigen Sie die untenstehende Schaltfläche um das Experiment zu beenden.</p>`,
+                  `<p>${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial} der Antworten waren korrekt. 
+                  Sie benötigen mindestens ${correctResponsesLimitRepeatedTutorial} korrekte Antworten um mit dem Experiment fortzufahren. 
+                  Bitte versuchen Sie es zu einem späteren Zeitpunkt nochmal. 
+                  Haben Sie Verständnisfragen? Hatten Sie technische Schwierigkeiten? 
+                  Dann wenden Sie sich bitte an die Versuchsleitung: ngoc.chi.banh@uni-paderborn.de</p>`,
                 ],
             choices: () =>
               globalProps.instructionLanguage === "en"
