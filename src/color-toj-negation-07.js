@@ -275,10 +275,13 @@ export async function run({ assetPaths }) {
 
     let instructions = {
       en: `You will see a grid of bars and a circle in the center. Please try to focus the circle during the whole experiment.
+
  Two of the bars will be colored (red or green).
+
  At the beginning of each trial, you will hear an instruction like "now red" or "not green".
  This informs you which bar is relevant for the respective trial.
  Then, each of the colored bars will flash once.
+ 
  Based on this, your task is to decide whether the bar indicated by the instruction flashed first or second.
  
  ${isAnswerKeySwitchEnabled ? instructionsWithKeySwitch.en : instructionsWithoutKeySwitch.en}
@@ -288,10 +291,13 @@ export async function run({ assetPaths }) {
        `,
       de: `
  Sie sehen gleich ein Muster aus überwiegend grauen Streifen und einen Kreis in der Mitte. Schauen sie möglichst während des gesamten Experimentes auf diesen Kreis.
+
  Jeweils ein Streifen rechts und links des mittig platzierten Kreises ist grün bzw. rot.
+
  Am Anfang jedes Durchgangs hören Sie eine Anweisung wie beispielsweise „jetzt rot“ oder „nicht grün“.
  Diese sagt Ihnen, welcher Streifen beurteilt werden soll.
  Anschließend wird jeder der farbigen Streifen kurz blinken.
+
  Ihre Aufgabe ist es zu entscheiden, ob der in der Anweisung benannte Streifen vor oder nach dem anderen farbigen Streifen blinkte.
  
  ${isAnswerKeySwitchEnabled ? instructionsWithKeySwitch.de : instructionsWithoutKeySwitch.de}
