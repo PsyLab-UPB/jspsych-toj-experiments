@@ -291,7 +291,7 @@ export async function run({ assetPaths }) {
  ${isAnswerKeySwitchEnabled ? instructionsWithKeySwitch.en : instructionsWithoutKeySwitch.en}
  
  The experiment will start with a tutorial of 30 trials. After each tutorial trial a sound will indicate whether your answer was correct or not.
- 75% of the answers need to be correct to proceed to the main part.
+ 70% of the answers need to be correct to proceed to the main part.
  Note that the playback of audio may be delayed for some of the first trials.
        `,
       de: `
@@ -308,7 +308,7 @@ export async function run({ assetPaths }) {
  ${isAnswerKeySwitchEnabled ? instructionsWithKeySwitch.de : instructionsWithoutKeySwitch.de}
  
  Das Experiment beginnt mit einer Übungsrunde von 30 Durchgängen, in dem Ihnen die Korrektheit jeder Antwort durch einen Ton zurückgemeldet wird. 
- 75% der Antworten müssen korrekt sein, um zum Hauptteil fortzufahren. 
+ 70% der Antworten müssen korrekt sein, um zum Hauptteil fortzufahren. 
  Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
        `,
     };
@@ -493,8 +493,8 @@ export async function run({ assetPaths }) {
   let numberOfTrialsTutorial = debugmode ? 10 : 30;
   let numberOfTrialsRepeatedTutorial = debugmode ? 10 : 10;
   let correctResponsesTutorial = 0;
-  let correctResponsesLimitTutorial = Math.floor(0.75 * numberOfTrialsTutorial);
-  let correctResponsesLimitRepeatedTutorial = Math.floor(0.75 * numberOfTrialsRepeatedTutorial);
+  let correctResponsesLimitTutorial = Math.floor(0.7 * numberOfTrialsTutorial);
+  let correctResponsesLimitRepeatedTutorial = Math.floor(0.7 * numberOfTrialsRepeatedTutorial);
   let maxRepetitionsTutorial = 2;
 
   let trialsTutorial = trials.slice(0, numberOfTrialsTutorial);
