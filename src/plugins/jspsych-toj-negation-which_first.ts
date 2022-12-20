@@ -13,16 +13,15 @@ import delay from "delay";
 import { ParameterType } from "jspsych";
 import { playAudio } from "../util/audio";
 import { TojPlugin } from "./TojPlugin";
+import { omit } from "lodash";
 
 enum TargetType {
   FIRST = "first",
-  SECOND = "second"
+  SECOND = "second",
 }
 
-
 export class TojPluginWhichFirst extends TojPlugin {
-
-  static info = <any> {
+  static info = <any>{
     name: "toj-which_first",
     parameters: {
       ...TojPlugin.info.parameters,
@@ -73,10 +72,10 @@ export class TojPluginWhichFirst extends TojPlugin {
         description: "The voice of the instruction ('m' or 'f')",
       },
     },
-  }
+  };
 
   async trial(display_element, trial, on_load) {
-    TojPlugin.current = <any> this;
+    TojPlugin.current = <any>this;
 
     this._appendContainerToDisplayElement(display_element, trial);
     on_load();
@@ -85,7 +84,6 @@ export class TojPluginWhichFirst extends TojPlugin {
     const audioBaseUrl = `media/audio/color-toj-negation/${trial.instruction_language}/${trial.instruction_voice}/`;
     await playAudio(audioBaseUrl + (trial.instruction_negated ? "not" : "now") + ".wav");
     await playAudio(audioBaseUrl + trial.instruction_filename + ".wav");
-
 
     await delay(trial.fixation_time);
 
@@ -131,12 +129,12 @@ export class TojPluginWhichFirst extends TojPlugin {
     // Clear the screen
     display_element.innerHTML = "";
 
-    // the probe is the stimuli that is being instructed to attend. 
+    // the probe is the stimuli that is being instructed to attend.
     // Instruction "not red" --> probe is green. Instruction "now red" --> probe is red.
     let isProbeFirst = trial.soa < 0;
     let correct = isProbeFirst === (response === TargetType.FIRST) || trial.soa === 0;
 
-    const resultData = Object.assign({}, trial, {
+    const resultData = Object.assign({}, omit(trial, ["type", "fixation_mark_html", "probe_element", "reference_element"]), {
       response_key: response === TargetType.FIRST ? trial.first_key : trial.second_key,
       response: response,
       response_correct: correct,
@@ -149,7 +147,6 @@ export class TojPluginWhichFirst extends TojPlugin {
 
     // Finish trial and log data
     this.jsPsych.finishTrial(resultData);
-    
   }
 }
 
