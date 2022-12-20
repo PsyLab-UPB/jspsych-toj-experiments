@@ -16,6 +16,7 @@ import SurveyMultiChoicePlugin from "@jspsych/plugin-survey-multi-choice";
 import SurveyTextPlugin from "@jspsych/plugin-survey-text";
 import HtmlButtonResponsePlugin from "@jspsych/plugin-html-button-response";
 import FullscreenPlugin from "@jspsych/plugin-fullscreen";
+import { getIndex } from "./subStringPosition"
 
 marked.setOptions({ breaks: true });
 
@@ -396,7 +397,22 @@ export function addIntroduction(jspsych, timeline, options) {
   // Instructions
   timeline.push({
     type: HtmlButtonResponsePlugin,
-    stimulus: () => marked(options.instructions()),
+    stimulus: () => {
+      let content = marked(options.instructions());
+
+      let circle_gif_tag = '<img src="../media/images/common/circle.gif" alt="Circle in the middle" class="gifs">';
+      let color_bars_gif_tag = '<img src="../media/images/common/color_bars.gif" alt="Color bars" class="gifs">';
+      let blinking_gif_tag = '<img src="../media/images/common/blinking.gif" alt="Blinking" class="gifs">';
+
+      let circle_gif_pos = getIndex(content, "</p>", 1);
+      content = content.substring(0, circle_gif_pos + 4) + circle_gif_tag + content.substring(circle_gif_pos + 4);
+      let color_bars_gif_pos = getIndex(content, "</p>", 2);
+      content = content.substring(0, color_bars_gif_pos + 4) + color_bars_gif_tag + content.substring(color_bars_gif_pos + 4);
+      let blinking_gif_pos = getIndex(content, "</p>", 3);
+      content = content.substring(0, blinking_gif_pos + 4) + blinking_gif_tag + content.substring(blinking_gif_pos + 4);
+      
+      return content;
+    },
     choices: () =>
       globalProps.instructionLanguage === "en"
         ? ["Got it, start the tutorial"]
