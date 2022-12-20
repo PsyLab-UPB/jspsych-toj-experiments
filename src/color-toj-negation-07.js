@@ -36,7 +36,7 @@ import PreloadPlugin from "@jspsych/plugin-preload";
 import HtmlButtonResponsePlugin from "@jspsych/plugin-html-button-response";
 import TojPlugin from "./plugins/TojPlugin";
 
-const soaChoices = [-6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6].map((x) => x * 16.667);
+const soaChoices = [-6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6].map((x) => (x * 16.6667).toFixed(3));
 const soaChoicesTutorial = [-6, -3, 3, 6].map((x) => (x * 16.6667).toFixed(3));
 
 const debugmode = false;
