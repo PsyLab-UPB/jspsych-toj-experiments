@@ -521,14 +521,16 @@ export async function run({ assetPaths }) {
       cursor_off,
       {
         conditional_function: () =>
-          globalProps.isFirstParticipation,
+          globalProps.isFirstParticipation &&
+          !tutorialAlreadyCompleted,
         timeline: [toj],
         timeline_variables: trialsTutorial,
         play_feedback: true,
       },
       {
         conditional_function: () =>
-          !globalProps.isFirstParticipation,
+          !globalProps.isFirstParticipation &&
+          !tutorialAlreadyCompleted,
         timeline: [toj],
         timeline_variables: trialsRepeatedTutorial,
         play_feedback: true,
