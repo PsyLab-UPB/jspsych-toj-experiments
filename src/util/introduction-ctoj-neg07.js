@@ -75,8 +75,9 @@ export function addIntroduction(jspsych, timeline, options) {
       preamble: `<p>Welcome to the ${options.experimentName} experiment!</p>`,
       questions: [
         {
+          name: "is_new_participant",
           prompt: `Is this the first time you participate in this experiment?`,
-          options: ["Yes", "No"],
+          options: ["Yes, I have not completed a session, yet.", "No, I am a returning participant and have already completed one session."],
           required: true,
         },
         {
@@ -93,7 +94,7 @@ export function addIntroduction(jspsych, timeline, options) {
       on_finish: (trial) => {
         const responses = trial.response;
         const newProps = {
-          isFirstParticipation: responses.Q0 === "Yes",
+          isFirstParticipation: responses['is_new_participant'].includes("Yes"),
           instructionLanguage: responses["participant_language"] === "Deutsch" ? "de" : "en",
         };
         Object.assign(globalProps, newProps);
@@ -410,7 +411,7 @@ export function addIntroduction(jspsych, timeline, options) {
       content = content.substring(0, color_bars_gif_pos + 4) + color_bars_gif_tag + content.substring(color_bars_gif_pos + 4);
       let blinking_gif_pos = getIndex(content, "</p>", 3);
       content = content.substring(0, blinking_gif_pos + 4) + blinking_gif_tag + content.substring(blinking_gif_pos + 4);
-      
+
       return content;
     },
     choices: () =>

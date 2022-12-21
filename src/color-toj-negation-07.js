@@ -698,8 +698,8 @@ export async function run({ assetPaths }) {
                 ],
             choices: () =>
               globalProps.instructionLanguage === "en"
-                ? ["Finish experiment"]
-                : ["Experiment beenden"],
+                ? ["Finish experiment and submit results"]
+                : ["Experiment beenden und Resultate absenden"],
           },
           {
             type: CallFunctionPlugin,
@@ -745,7 +745,7 @@ export async function run({ assetPaths }) {
             choices: () =>
               globalProps.instructionLanguage === "en"
                 ? ["Finish experiment"]
-                : ["Experiment abschließen"],
+                : ["Experiment beenden"],
           },
           {
             type: CallFunctionPlugin,
