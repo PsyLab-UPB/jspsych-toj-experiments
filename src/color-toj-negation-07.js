@@ -244,15 +244,17 @@ export async function run({ assetPaths }) {
  Please try to be as exact as possible and avoid mistakes.
  If it is not clear to you whether the respective bar flashed first or second, you may guess the answer.
  
- Example: If the voice announces “not green” you will have to judge the red bar. Did it flash before the green bar? Then pressing **Q** or a **left-hand tap** is the correct response. Did the red bar flash after the green bar? Then pressing **P** or tapping the **right-hand side** is correct.`,
+ Example: If the voice announces “not green” you will have to judge the red bar. In the example image above, the red bar flashed first, i.e., before the green bar. Pressing **Q** or a **left-hand tap** is the correct response.
+ If the red bar flashed after the green bar, pressing **P** or tapping the **right-hand side** would be correct.`,
 
       de: `Hat er zuerst geblinkt (vor dem anderen), drücken Sie **Q** (oder tippen Sie auf die **linke Bildschirmhälfte**).
  Hat er nach dem anderen (also als zweiter) geblinkt, drücken Sie **P** (oder tippen Sie auf die **rechte Bildschirmhälfte**).
  
  Versuchen Sie genau zu sein und keine Fehler zu machen.
- Wenn Sie nicht wissen, welcher Strich zuerst blinkte, raten Sie.
+ Wenn Sie nicht wissen, welcher Streifen zuerst blinkte, raten Sie.
  
- Ein Beispiel: Wenn die Stimme „nicht grün“ ansagt, müssen Sie den roten Strich beurteilen. Hat er vor dem grünen geblinkt? Dann ist das Tippen der **Q**-Taste oder auf die linke Bildschirmhälfte korrekt. Hat der rote Strich nach dem grünen geblinkt? Dann ist die **P**-Taste bzw. das Antippen der rechten Bildschirmhälfte korrekt.`,
+ Ein Beispiel: Wenn die Stimme „nicht grün“ ansagt, müssen Sie den roten Streifen beurteilen. Im Beispielbild oben blinkte er als Erster, d.h. vor dem grünen Streifen. Das Tippen der **Q**-Taste oder auf die linke Bildschirmhälfte ist dann korrekt.
+ Würde der rote Streifen nach dem grünen blinken, so wäre die **P**-Taste bzw. das Antippen der **rechten** Bildschirmhälfte korrekt.`,
     };
 
     let instructionsWithKeySwitch = {
@@ -262,15 +264,17 @@ export async function run({ assetPaths }) {
  Please try to be as exact as possible and avoid mistakes.
  If it is not clear to you whether the respective bar flashed first or second, you may guess the answer.
  
- Example: If the voice announces “not green” you will have to judge the red bar. Did it flash before the green bar? Then pressing **P** or **right-hand tap** is the correct response. Did the red bar flash after the green bar? Then pressing **Q** or tapping the **left-hand side** is correct.`,
+ Example: If the voice announces “not green” you will have to judge the red bar. In the example image above, the red bar flashed first, i.e., before the green bar. Pressing **P** or **right-hand tap** is the correct response. 
+ If the red bar flashed after the green bar, pressing **Q** or tapping the **left-hand side** would be correct.`,
 
       de: `Hat er zuerst geblinkt (vor dem anderen), drücken Sie **P** (oder tippen Sie auf die **rechte Bildschirmhälfte**).
  Hat er nach dem anderen (also als zweiter) geblinkt, drücken Sie **Q** (oder tippen Sie auf die **linke Bildschirmhälfte**).
  
  Versuchen Sie genau zu sein und keine Fehler zu machen.
- Wenn Sie nicht wissen, welcher Strich zuerst blinkte, raten Sie.
+ Wenn Sie nicht wissen, welcher Streifen zuerst blinkte, raten Sie.
  
- Ein Beispiel: Wenn die Stimme „nicht grün“ ansagt, müssen Sie den roten Strich beurteilen. Hat er vor dem grünen geblinkt? Dann ist das Tippen der **P**-Taste oder auf die **rechte** Bildschirmhälfte korrekt. Hat der rote Strich nach dem grünen geblinkt? Dann ist die **Q**-Taste bzw. das Antippen der **linken** Bildschirmhälfte korrekt.`,
+ Ein Beispiel: Wenn die Stimme „nicht grün“ ansagt, müssen Sie den roten Streifen beurteilen. Im Beispielbild oben blinkte er als Erster, d.h. vor dem grünen Streifen. Das Tippen der **P**-Taste oder auf die **rechte** Bildschirmhälfte ist dann korrekt. 
+ Würde der rote Streifen nach dem grünen blinken, so wäre die **Q**-Taste bzw. das Antippen der **linken** Bildschirmhälfte korrekt.`,
     };
 
     let instructions = {
@@ -287,6 +291,7 @@ export async function run({ assetPaths }) {
  ${isAnswerKeySwitchEnabled ? instructionsWithKeySwitch.en : instructionsWithoutKeySwitch.en}
  
  The experiment will start with a tutorial of 30 trials. After each tutorial trial a sound will indicate whether your answer was correct or not.
+ 70% of the answers need to be correct to proceed to the main part.
  Note that the playback of audio may be delayed for some of the first trials.
        `,
       de: `
@@ -302,7 +307,8 @@ export async function run({ assetPaths }) {
  
  ${isAnswerKeySwitchEnabled ? instructionsWithKeySwitch.de : instructionsWithoutKeySwitch.de}
  
- Das Experiment beginnt mit einer Übungsrunde von 30 Durchgängen, in dem Ihnen die Korrektheit jeder Antwort durch einen Ton zurückgemeldet wird.
+ Das Experiment beginnt mit einer Übungsrunde von 30 Durchgängen, in dem Ihnen die Korrektheit jeder Antwort durch einen Ton zurückgemeldet wird. 
+ 70% der Antworten müssen korrekt sein, um zum Hauptteil fortzufahren. 
  Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
        `,
     };
@@ -487,8 +493,8 @@ export async function run({ assetPaths }) {
   let numberOfTrialsTutorial = debugmode ? 10 : 30;
   let numberOfTrialsRepeatedTutorial = debugmode ? 10 : 10;
   let correctResponsesTutorial = 0;
-  let correctResponsesLimitTutorial = Math.floor(0.75 * numberOfTrialsTutorial);
-  let correctResponsesLimitRepeatedTutorial = Math.floor(0.75 * numberOfTrialsRepeatedTutorial);
+  let correctResponsesLimitTutorial = Math.floor(0.7 * numberOfTrialsTutorial);
+  let correctResponsesLimitRepeatedTutorial = Math.floor(0.7 * numberOfTrialsRepeatedTutorial);
   let maxRepetitionsTutorial = 2;
 
   let trialsTutorial = trials.slice(0, numberOfTrialsTutorial);
@@ -521,14 +527,16 @@ export async function run({ assetPaths }) {
       cursor_off,
       {
         conditional_function: () =>
-          globalProps.isFirstParticipation,
+          globalProps.isFirstParticipation &&
+          !tutorialAlreadyCompleted,
         timeline: [toj],
         timeline_variables: trialsTutorial,
         play_feedback: true,
       },
       {
         conditional_function: () =>
-          !globalProps.isFirstParticipation,
+          !globalProps.isFirstParticipation &&
+          !tutorialAlreadyCompleted,
         timeline: [toj],
         timeline_variables: trialsRepeatedTutorial,
         play_feedback: true,
