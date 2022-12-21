@@ -33,6 +33,7 @@ import { createBarStimulusGrid } from "./util/barStimuli";
 import { setAbsolutePosition } from "./util/positioning";
 import { LabColor } from "./util/colors";
 import { addIntroduction } from "./util/introduction-ctoj-neg07";
+import { getIndex } from "./util/subStringPosition"
 import CallFunctionPlugin from "@jspsych/plugin-call-function";
 import SurveyTextPlugin from "@jspsych/plugin-survey-text";
 import FullscreenPlugin from "@jspsych/plugin-fullscreen";
@@ -317,7 +318,21 @@ export async function run({ assetPaths }) {
  Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
        `,
     };
-    return globalProps.instructionLanguage === "en" ? instructions.en : instructions.de;
+
+    let html = marked(globalProps.instructionLanguage === "en" ? instructions.en : instructions.de);
+
+    let circle_gif_tag = '<img src="../media/images/common/circle.gif" alt="Circle in the middle" class="gifs">';
+    let color_bars_gif_tag = '<img src="../media/images/common/color_bars.gif" alt="Color bars" class="gifs">';
+    let blinking_gif_tag = '<img src="../media/images/common/blinking.gif" alt="Blinking" class="gifs">';
+
+    let circle_gif_pos = getIndex(html, "</p>", 1);
+    html = html.substring(0, circle_gif_pos + 4) + circle_gif_tag + html.substring(circle_gif_pos + 4);
+    let color_bars_gif_pos = getIndex(html, "</p>", 2);
+    html = html.substring(0, color_bars_gif_pos + 4) + color_bars_gif_tag + html.substring(color_bars_gif_pos + 4);
+    let blinking_gif_pos = getIndex(html, "</p>", 3);
+    html = html.substring(0, blinking_gif_pos + 4) + blinking_gif_tag + html.substring(blinking_gif_pos + 4);
+
+    return html;
   };
 
   const globalProps = addIntroduction(jsPsych, timeline, {
@@ -523,11 +538,11 @@ export async function run({ assetPaths }) {
         timeline: [
           {
             type: HtmlButtonResponsePlugin,
-            stimulus: () => marked(showInstructions(jsPsych)),
+            stimulus: () => showInstructions(jsPsych),
             choices: () =>
               globalProps.instructionLanguage === "en"
                 ? ["Got it, start the tutorial"]
-                : ["Alles klar, Tutorial starten"],
+                : ["Alles klar, Übungsrunde starten"],
           },
         ],
       },
