@@ -219,7 +219,7 @@ export async function run({ assetPaths }) {
     // works for exactly four treatment groups
     let participantCodeMD5 = globalProps.participantCodeMD5;
     let treatmentGroupNumber = Number('0x'.concat(participantCodeMD5.slice(-1))) % 4;
-    let isAssertedFirst = treatmentGroupNumber % 2 === 0;
+    let isAssertedFirst = treatmentGroupNumber % 2 === 1;
     let isAnswerKeySwitchEnabled = parseInt(treatmentGroupNumber / 2) === 1;
 
     Object.assign(globalProps, { treatmentGroupNumber: treatmentGroupNumber });
