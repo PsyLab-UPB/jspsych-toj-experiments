@@ -783,6 +783,34 @@ export async function run({ assetPaths }) {
           }
         },
       },
+      {
+        type: SurveyTextPlugin,
+        questions: () => {
+          if (globalProps.instructionLanguage === "en") {
+            return [
+              {
+                name: "encountered technical issues",
+                prompt:
+                  "<p>Did you encounter technical issues? Do you have any remarks about the experiment?</p>",
+                required: true,
+                rows: 10,
+                columns: 60,
+              },
+            ];
+          } else {
+            return [
+              {
+                name: "encountered technical issues",
+                prompt:
+                  "<p>Stießen Sie auf technische Probleme? Haben Sie Anmerkungen zum Experiment?</p>",
+                required: true,
+                rows: 10,
+                columns: 60,
+              },
+            ];
+          }
+        },
+      },
     ],
   };
 
