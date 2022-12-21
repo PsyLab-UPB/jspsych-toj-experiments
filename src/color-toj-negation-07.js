@@ -321,9 +321,9 @@ export async function run({ assetPaths }) {
 
     let html = marked(globalProps.instructionLanguage === "en" ? instructions.en : instructions.de);
 
-    let circle_gif_tag = '<img src="../media/images/common/circle.gif" alt="Circle in the middle" class="gifs">';
-    let color_bars_gif_tag = '<img src="../media/images/common/color_bars.gif" alt="Color bars" class="gifs">';
-    let blinking_gif_tag = '<img src="../media/images/common/blinking.gif" alt="Blinking" class="gifs">';
+    let circle_gif_tag = '<img src="./media/images/common/circle.gif" alt="Circle in the middle" class="gifs">';
+    let color_bars_gif_tag = '<img src="./media/images/common/color_bars.gif" alt="Color bars" class="gifs">';
+    let blinking_gif_tag = '<img src="./media/images/common/blinking.gif" alt="Blinking" class="gifs">';
 
     let circle_gif_pos = getIndex(html, "</p>", 1);
     html = html.substring(0, circle_gif_pos + 4) + circle_gif_tag + html.substring(circle_gif_pos + 4);
