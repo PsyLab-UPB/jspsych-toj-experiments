@@ -1,9 +1,14 @@
 /**
  * @title Color TOJ Neg 7
- * @description Experiment on negation in TVA instructions (dual-colored version with two stimuli, a merge of experiment color-toj-negation-06.js as a skeleton (meta data collection) and experiment color-toj-negation-02.js for trial presentation (display of two stimuli instead of two stimuli pairs). This experiment is a replication of color-toj-negation-02.js with trials ordered in two halfs negations/assertions. Aside from that, following improvements / changes were made:
- * - Tutorial has to be repeated if a certain threshhold of correct answers is not passed. If the participant fails the tutorial twice, the experiment ends immediately.
- * - Generate trials which are asserted only in one half of the experiment and negated only in the other half of the experiment. Which half is asserted and which negated depends on the participant code (that is generated randomly initially) and if its the first, secocnd, or third participation of the participant (halves are switched on every participation).
- * @version 0.1
+ * @description Experiment on effects of negation in TVA's weight and capacity: This is a modified version of color-toj-negation-06.js (display of two stimuli, red and green). Following improvements / changes were made:
+ * - Most importantly, the first session has only negations and the second session has only assertions (or vice versa). The participant code determines to which treatment group a participant belongs. Sequence lengths to not play a role. 
+ * - More SOAs
+ * - Tutorial has to be repeated if a certain threshold (here: 70%) of correct answers was not reached. If the participant fails the tutorial twice, the experiment ends immediately.
+ * - Adjusted concluding survey to the task; survey also asks for general remarks. 
+ * - Adjusted declaration of consent
+ * - Better instructions (with images) and a better example TOJ
+ 
+ * @version 0.2
  * @imageDir images/common
  * @audioDir audio/color-toj-negation,audio/feedback
  * @miscDir misc
@@ -28,6 +33,7 @@ import { createBarStimulusGrid } from "./util/barStimuli";
 import { setAbsolutePosition } from "./util/positioning";
 import { LabColor } from "./util/colors";
 import { addIntroduction } from "./util/introduction-ctoj-neg07";
+import { getIndex } from "./util/subStringPosition"
 import CallFunctionPlugin from "@jspsych/plugin-call-function";
 import SurveyTextPlugin from "@jspsych/plugin-survey-text";
 import FullscreenPlugin from "@jspsych/plugin-fullscreen";
@@ -219,7 +225,7 @@ export async function run({ assetPaths }) {
     // works for exactly four treatment groups
     let participantCodeMD5 = globalProps.participantCodeMD5;
     let treatmentGroupNumber = Number('0x'.concat(participantCodeMD5.slice(-1))) % 4;
-    let isAssertedFirst = treatmentGroupNumber % 2 === 0;
+    let isAssertedFirst = treatmentGroupNumber % 2 === 1;
     let isAnswerKeySwitchEnabled = parseInt(treatmentGroupNumber / 2) === 1;
 
     Object.assign(globalProps, { treatmentGroupNumber: treatmentGroupNumber });
@@ -312,12 +318,26 @@ export async function run({ assetPaths }) {
  Die Audiowiedergabe kann bei den ersten Durchgängen leicht verzögert sein.
        `,
     };
-    return globalProps.instructionLanguage === "en" ? instructions.en : instructions.de;
+
+    let html = marked(globalProps.instructionLanguage === "en" ? instructions.en : instructions.de);
+
+    let circle_gif_tag = '<img src="./media/images/common/circle.gif" alt="Circle in the middle" class="gifs">';
+    let color_bars_gif_tag = '<img src="./media/images/common/color_bars.gif" alt="Color bars" class="gifs">';
+    let blinking_gif_tag = '<img src="./media/images/common/blinking.gif" alt="Blinking" class="gifs">';
+
+    let circle_gif_pos = getIndex(html, "</p>", 1);
+    html = html.substring(0, circle_gif_pos + 4) + circle_gif_tag + html.substring(circle_gif_pos + 4);
+    let color_bars_gif_pos = getIndex(html, "</p>", 2);
+    html = html.substring(0, color_bars_gif_pos + 4) + color_bars_gif_tag + html.substring(color_bars_gif_pos + 4);
+    let blinking_gif_pos = getIndex(html, "</p>", 3);
+    html = html.substring(0, blinking_gif_pos + 4) + blinking_gif_tag + html.substring(blinking_gif_pos + 4);
+
+    return html;
   };
 
   const globalProps = addIntroduction(jsPsych, timeline, {
     skip: false,
-    askForLastParticipation: true,
+    askForLastParticipation: false,
     experimentName: "Color TOJ-N7",
     instructions: () => showInstructions(jsPsych),
     isAProlificStudy: IS_A_PROLIFIC_STUDY,
@@ -351,10 +371,12 @@ export async function run({ assetPaths }) {
   };
 
   // create arrays with negated and asserted trials
-  const repetitions = 2;
+  const repetitions = 10;
   let trialsNegated = jsPsych.randomization.factorial(factorsNegated, repetitions);
   let trialsAsserted = jsPsych.randomization.factorial(factorsAsserted, repetitions);
-  let blockCount = 6;
+  trialsNegated = jsPsych.randomization.shuffle(trialsNegated);
+  trialsAsserted = jsPsych.randomization.shuffle(trialsAsserted);
+  const blockSize = 44; // after how many TOJ trials shall a pause occur?
 
   // only used for tutorial and debugging in this experiment
   let trials = jsPsych.randomization.factorial(factorsTutorial, 10);
@@ -516,11 +538,11 @@ export async function run({ assetPaths }) {
         timeline: [
           {
             type: HtmlButtonResponsePlugin,
-            stimulus: () => marked(showInstructions(jsPsych)),
+            stimulus: () => showInstructions(jsPsych),
             choices: () =>
               globalProps.instructionLanguage === "en"
                 ? ["Got it, start the tutorial"]
-                : ["Alles klar, Tutorial starten"],
+                : ["Alles klar, Übungsrunde starten"],
           },
         ],
       },
@@ -691,8 +713,8 @@ export async function run({ assetPaths }) {
                 ],
             choices: () =>
               globalProps.instructionLanguage === "en"
-                ? ["Finish experiment"]
-                : ["Experiment beenden"],
+                ? ["Finish experiment and submit results"]
+                : ["Experiment beenden und Resultate absenden"],
           },
           {
             type: CallFunctionPlugin,
@@ -738,7 +760,7 @@ export async function run({ assetPaths }) {
             choices: () =>
               globalProps.instructionLanguage === "en"
                 ? ["Finish experiment"]
-                : ["Experiment abschließen"],
+                : ["Experiment beenden"],
           },
           {
             type: CallFunctionPlugin,
@@ -771,10 +793,10 @@ export async function run({ assetPaths }) {
     choices: ["Continue"],
   });
 
-  // Questions which appear after the last block if it is the subject's last participation
+  // Questions which appear after the last block if it is the participant's second (=last) session
   const lastParticipationSurvey = {
     conditional_function: () =>
-      globalProps.isLastParticipation === true ||
+      globalProps.isFirstParticipation === false ||
       (IS_A_PROLIFIC_STUDY && IS_FINAL_QUESTIONNAIRE_ENABLED),
     timeline: [
       {
@@ -838,74 +860,77 @@ export async function run({ assetPaths }) {
 
   timeline.push(cursor_off);
 
-  // Generator function to create the main experiment timeline
-  const timelineGenerator = function* (blockCount, isAssertedFirst) {
-    let currentBlock = 1;
-    while (currentBlock <= blockCount) {
-      yield {
-        timeline: [toj],
-        // Alternate between first half and second half of trials
-        timeline_variables: isAssertedFirst
-          ? currentBlock <= blockCount / 2
-            ? trialsNegated
-            : trialsAsserted
-          : currentBlock <= blockCount / 2
-            ? trialsAsserted
-            : trialsNegated,
-        randomize_order: true,
-      };
-      yield cursor_on;
-      yield makeBlockFinishedScreenTrial(currentBlock, blockCount);
-      yield cursor_off;
-      currentBlock += 1;
+  // Generator function to create the main experiment timeline including breaks every `blockSize` trials
+  const timelineGenerator = function* (blockSize, isBlockAsserted) {
+    let trialsToSplit = isBlockAsserted ? trialsAsserted : trialsNegated;
+    if (debugmode) {
+      console.log("number of TOJs in main part: " + trialsToSplit.length);
     }
+
+    let blockCount = Math.ceil(trialsToSplit.length / blockSize);
+    let curBlockCount = 1;
+    for (let i = 0; i < trialsToSplit.length; i++) {
+      if (i % blockSize === 0 && i != 0) {
+        yield cursor_on;
+        yield makeBlockFinishedScreenTrial(curBlockCount, blockCount);
+        yield cursor_off;
+        curBlockCount++;
+      }
+      yield { timeline: [toj], timeline_variables: [trialsToSplit[i]] };
+    }
+    yield cursor_on;
+    yield makeBlockFinishedScreenTrial(curBlockCount, blockCount);
   };
 
   // Main experiment
-  // Push first half and second half of trials to timeline.
-  // The order (which half is negated and which half asserted) is switched at the second participation and switched back at the third participation.
-  // Negated trials first half
+  // Push either solely negated or solely asserted trials to timeline.
+  // Generate assertions for a session
   timeline.push({
     conditional_function: () =>
+      // if assertion is supposed to be the first session and this is the first session
       (globalProps.isAssertedFirst &&
         !IS_A_PROLIFIC_STUDY &&
-        (globalProps.isFirstParticipation || globalProps.isLastParticipation)) ||
+        globalProps.isFirstParticipation) ||
       (globalProps.isAssertedFirst &&
         IS_A_PROLIFIC_STUDY &&
-        (IS_STARTING_QUESTIONNAIRE_ENABLED || IS_FINAL_QUESTIONNAIRE_ENABLED)) ||
+        (IS_STARTING_QUESTIONNAIRE_ENABLED &&
+          !IS_FINAL_QUESTIONNAIRE_ENABLED)) ||
+      // if negation is supposed to be the first session and this is the second session
       (!globalProps.isAssertedFirst &&
         !IS_A_PROLIFIC_STUDY &&
-        !globalProps.isFirstParticipation &&
-        !globalProps.isLastParticipation) ||
+        !globalProps.isFirstParticipation) ||
       (!globalProps.isAssertedFirst &&
         IS_A_PROLIFIC_STUDY &&
         !IS_STARTING_QUESTIONNAIRE_ENABLED &&
-        !IS_FINAL_QUESTIONNAIRE_ENABLED),
-    timeline: Array.from(timelineGenerator(blockCount, true)),
+        IS_FINAL_QUESTIONNAIRE_ENABLED),
+    timeline: Array.from(timelineGenerator(blockSize, true)),
   });
-  // Asserted trials first half
+
+  // Generate negations for a session
   timeline.push({
     conditional_function: () =>
+      // if negation is supposed to be the first session and this is the first session
       (!globalProps.isAssertedFirst &&
         !IS_A_PROLIFIC_STUDY &&
-        (globalProps.isFirstParticipation || globalProps.isLastParticipation)) ||
+        globalProps.isFirstParticipation) ||
       (!globalProps.isAssertedFirst &&
         IS_A_PROLIFIC_STUDY &&
-        (IS_STARTING_QUESTIONNAIRE_ENABLED || IS_FINAL_QUESTIONNAIRE_ENABLED)) ||
+        (IS_STARTING_QUESTIONNAIRE_ENABLED &&
+          !IS_FINAL_QUESTIONNAIRE_ENABLED)) ||
+      // if assertion is supposed to be the first session and this is the second session
       (globalProps.isAssertedFirst &&
         !IS_A_PROLIFIC_STUDY &&
-        !globalProps.isFirstParticipation &&
-        !globalProps.isLastParticipation) ||
+        !globalProps.isFirstParticipation) ||
       (globalProps.isAssertedFirst &&
         IS_A_PROLIFIC_STUDY &&
         !IS_STARTING_QUESTIONNAIRE_ENABLED &&
-        !IS_FINAL_QUESTIONNAIRE_ENABLED),
-    timeline: Array.from(timelineGenerator(blockCount, false)),
+        IS_FINAL_QUESTIONNAIRE_ENABLED),
+    timeline: Array.from(timelineGenerator(blockSize, false)),
   });
 
   if (debugmode) {
-    console.log("length of a block A: " + Array.from(timelineGenerator(blockCount, false)).length)
-    console.log("length of a block N: " + Array.from(timelineGenerator(blockCount, true)).length)
+    console.log("length of a block A including TOJ, fullscreen on, fullscreen off, break screen: " + Array.from(timelineGenerator(blockSize, false)).length)
+    console.log("length of a block N including TOJ, fullscreen on, fullscreen off, break screen: " + Array.from(timelineGenerator(blockSize, true)).length)
   }
 
   timeline.push(cursor_on);

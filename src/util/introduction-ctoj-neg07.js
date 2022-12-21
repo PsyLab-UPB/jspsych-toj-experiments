@@ -16,7 +16,6 @@ import SurveyMultiChoicePlugin from "@jspsych/plugin-survey-multi-choice";
 import SurveyTextPlugin from "@jspsych/plugin-survey-text";
 import HtmlButtonResponsePlugin from "@jspsych/plugin-html-button-response";
 import FullscreenPlugin from "@jspsych/plugin-fullscreen";
-import { getIndex } from "./subStringPosition"
 
 marked.setOptions({ breaks: true });
 
@@ -75,8 +74,9 @@ export function addIntroduction(jspsych, timeline, options) {
       preamble: `<p>Welcome to the ${options.experimentName} experiment!</p>`,
       questions: [
         {
+          name: "is_new_participant",
           prompt: `Is this the first time you participate in this experiment?`,
-          options: ["Yes", "No"],
+          options: ["Yes, I have not completed a session, yet.", "No, I am a returning participant and have already completed one session."],
           required: true,
         },
         {
@@ -93,7 +93,7 @@ export function addIntroduction(jspsych, timeline, options) {
       on_finish: (trial) => {
         const responses = trial.response;
         const newProps = {
-          isFirstParticipation: responses.Q0 === "Yes",
+          isFirstParticipation: responses['is_new_participant'].includes("Yes"),
           instructionLanguage: responses["participant_language"] === "Deutsch" ? "de" : "en",
         };
         Object.assign(globalProps, newProps);
@@ -218,7 +218,7 @@ export function addIntroduction(jspsych, timeline, options) {
   timeline.push({
     type: HtmlButtonResponsePlugin,
     stimulus: () => {
-      return `<iframe class="declaration" src="media/misc/declaration_color-toj-negation-06_prolific_${globalProps.instructionLanguage}.html"></iframe>`;
+      return `<iframe class="declaration" src="media/misc/declaration_color-toj-negation-07_prolific_${globalProps.instructionLanguage}.html"></iframe>`;
     },
     choices: () => (globalProps.instructionLanguage === "en" ? ["I agree with the terms and conditions"] : ["Ich stimme den Versuchsbedingungen zu"]),
   });
@@ -397,26 +397,11 @@ export function addIntroduction(jspsych, timeline, options) {
   // Instructions
   timeline.push({
     type: HtmlButtonResponsePlugin,
-    stimulus: () => {
-      let content = marked(options.instructions());
-
-      let circle_gif_tag = '<img src="../media/images/common/circle.gif" alt="Circle in the middle" class="gifs">';
-      let color_bars_gif_tag = '<img src="../media/images/common/color_bars.gif" alt="Color bars" class="gifs">';
-      let blinking_gif_tag = '<img src="../media/images/common/blinking.gif" alt="Blinking" class="gifs">';
-
-      let circle_gif_pos = getIndex(content, "</p>", 1);
-      content = content.substring(0, circle_gif_pos + 4) + circle_gif_tag + content.substring(circle_gif_pos + 4);
-      let color_bars_gif_pos = getIndex(content, "</p>", 2);
-      content = content.substring(0, color_bars_gif_pos + 4) + color_bars_gif_tag + content.substring(color_bars_gif_pos + 4);
-      let blinking_gif_pos = getIndex(content, "</p>", 3);
-      content = content.substring(0, blinking_gif_pos + 4) + blinking_gif_tag + content.substring(blinking_gif_pos + 4);
-      
-      return content;
-    },
+    stimulus: () => options.instructions(),
     choices: () =>
       globalProps.instructionLanguage === "en"
         ? ["Got it, start the tutorial"]
-        : ["Alles klar, Tutorial starten"],
+        : ["Alles klar, Übungsrunde starten"],
   });
 
   return globalProps;
