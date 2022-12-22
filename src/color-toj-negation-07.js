@@ -8,7 +8,7 @@
  * - Adjusted declaration of consent
  * - Better instructions (with images) and a better example TOJ
  
- * @version 0.2-rc1
+ * @version 0.2-rc2
  * @imageDir images/common
  * @audioDir audio/color-toj-negation,audio/feedback
  * @miscDir misc
