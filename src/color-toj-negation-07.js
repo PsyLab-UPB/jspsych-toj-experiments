@@ -370,20 +370,23 @@ export async function run({ assetPaths }) {
     soa: [-6, 6].map((x) => (x * 16.6667).toFixed(3)),
   };
 
-  // create arrays with negated and asserted trials
+  // create arrays with negated and asserted trials for the main part
   const repetitions = 10;
+  const blockSize = 44; // after how many TOJ trials shall a pause occur?
   let trialsNegated = jsPsych.randomization.factorial(factorsNegated, repetitions);
   let trialsAsserted = jsPsych.randomization.factorial(factorsAsserted, repetitions);
-  trialsNegated = jsPsych.randomization.shuffle(trialsNegated);
-  trialsAsserted = jsPsych.randomization.shuffle(trialsAsserted);
-  const blockSize = 44; // after how many TOJ trials shall a pause occur?
-
   // only used for tutorial and debugging in this experiment
   let trials = jsPsych.randomization.factorial(factorsTutorial, 10);
 
   if (debugmode) {
-    trials = jsPsych.randomization.factorial(factorsDebug, 20);
+    trialsNegated = jsPsych.randomization.factorial(factorsNegated, 1);
+    trialsAsserted = jsPsych.randomization.factorial(factorsAsserted, 1);
+    trials = jsPsych.randomization.factorial(factorsDebug, 1);
   }
+
+  trialsNegated = jsPsych.randomization.shuffle(trialsNegated);
+  trialsAsserted = jsPsych.randomization.shuffle(trialsAsserted);
+  trials = jsPsych.randomization.shuffle(trials);
 
   const touchAdapterLeft = new TouchAdapter(leftKey);
   const touchAdapterRight = new TouchAdapter(rightKey);
