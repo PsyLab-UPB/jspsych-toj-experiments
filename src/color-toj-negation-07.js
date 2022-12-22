@@ -460,12 +460,10 @@ export async function run({ assetPaths }) {
         );
 
         // Specify the elements for TOJ
-        if(target.isLeft)
-        {
+        if (target.isLeft) {
           trial.first_touch_element = gridElement
         }
-        else 
-        {
+        else {
           trial.second_touch_element = gridElement
         }
 
