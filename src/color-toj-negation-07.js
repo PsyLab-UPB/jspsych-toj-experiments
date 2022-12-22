@@ -8,7 +8,7 @@
  * - Adjusted declaration of consent
  * - Better instructions (with images) and a better example TOJ
  
- * @version 0.2
+ * @version 0.2-rc1
  * @imageDir images/common
  * @audioDir audio/color-toj-negation,audio/feedback
  * @miscDir misc
@@ -451,7 +451,7 @@ export async function run({ assetPaths }) {
           condition.rotation
         );
         plugin.appendElement(gridElement);
-        (target.isLeft ? touchAdapterLeft : touchAdapterRight).bindToElement(gridElement);
+        //(target.isLeft ? touchAdapterLeft : touchAdapterRight).bindToElement(gridElement);
 
         setAbsolutePosition(
           gridElement,
@@ -460,8 +460,18 @@ export async function run({ assetPaths }) {
         );
 
         // Specify the elements for TOJ
+        if(target.isLeft)
+        {
+          trial.first_touch_element = gridElement
+        }
+        else 
+        {
+          trial.second_touch_element = gridElement
+        }
+
         if (target.isProbe) {
           trial.probe_element = targetElement;
+
         } else {
           trial.reference_element = targetElement;
         }
