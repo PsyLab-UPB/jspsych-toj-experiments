@@ -191,23 +191,30 @@ export async function run({ assetPaths }) {
       let prolific_participant_id;
       let prolific_study_id;
       let prolific_session_id;
+      let participantCodeMD5;
 
       if (typeof jatos !== "undefined") {
         prolific_participant_id = jatos.urlQueryParameters.PROLIFIC_PID;
         prolific_study_id = jatos.urlQueryParameters.STUDY_ID;
         prolific_session_id = jatos.urlQueryParameters.SESSION_ID;
+        participantCodeMD5 = md5(participantCode);
 
         jsPsych.data.addProperties({
           prolific_participant_id: prolific_participant_id,
           prolific_study_id: prolific_study_id,
           prolific_session_id: prolific_session_id,
+          participantCodeMD5: participantCodeMD5,
         });
       }
 
       if (debugmode) {
+        if (typeof jatos == "undefined") {
+          console.warn(`Apparently, the experiment is not running on JATOS. URL parameters will be ignored and will be undefined.`);
+        }
         console.log(`prolific_participant_id: ${prolific_participant_id}`);
         console.log(`prolific_study_id: ${prolific_study_id}`);
         console.log(`prolific_session_id: ${prolific_session_id}`);
+        console.log(`participantCodeMD5: ${participantCodeMD5}`);
       }
     },
   });

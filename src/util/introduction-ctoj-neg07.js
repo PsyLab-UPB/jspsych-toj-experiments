@@ -131,8 +131,10 @@ export function addIntroduction(jspsych, timeline, options) {
           participant_code = "42";
         }
         const newProps = {
+          isFirstParticipation: options.isStartingQuestionnaireEnabled,
           instructionLanguage: responses["participant_language"] === "Deutsch" ? "de" : "en",
-          participantCodeMD5: md5(participant_code)
+          participantCodeMD5: md5(participant_code),
+
         };
         Object.assign(globalProps, newProps);
         jspsych.data.addProperties(newProps);
