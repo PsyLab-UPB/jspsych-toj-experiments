@@ -8,7 +8,7 @@
  * - Adjusted declaration of consent
  * - Better instructions (with images) and a better example TOJ
  
- * @version 1.0
+ * @version 1.1-prolific-p1
  * @imageDir images/common
  * @audioDir audio/color-toj-negation,audio/feedback
  * @miscDir misc
@@ -46,10 +46,10 @@ const soaChoices = [-6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6].map((x) => (x * 16.666
 const soaChoicesTutorial = [-6, -3, 3, 6].map((x) => (x * 16.6667).toFixed(3));
 
 const debugmode = false;
-const IS_A_PROLIFIC_STUDY = false;
+const IS_A_PROLIFIC_STUDY = true;
 
 // is only relevant if IS_A_PROLIFIC_STUDY evaluates to true
-const IS_STARTING_QUESTIONNAIRE_ENABLED = false;
+const IS_STARTING_QUESTIONNAIRE_ENABLED = true;
 const IS_FINAL_QUESTIONNAIRE_ENABLED = false;
 
 class TojTarget {
