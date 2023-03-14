@@ -714,20 +714,42 @@ export async function run({ assetPaths }) {
             stimulus: () =>
               globalProps.instructionLanguage === "en"
                 ? [
-                  `<p>${correctResponsesTutorial} of ${numberOfTrialsTutorial} responses were correct. 
-                  You need at least ${correctResponsesLimitTutorial} correct responses to go on with the experiment. 
-                  Please try again later. 
-                  Do you have any comprehension questions? 
-                  Did you encounter technical issues? 
-                  Then please refer to the study conductor: ngoc.chi.banh@uni-paderborn.de</p>`,
+                  `<p>
+                    Thank you for participating.<br>
+                    ${correctResponsesTutorial} of ${numberOfTrialsTutorial} responses were correct. 
+                    You need at least ${correctResponsesLimitTutorial} correct responses to go on with the experiment.
+                  </p>
+                  <p>
+                    Unfortunately, you did not pass the tutorial. 
+                    Please note your completion code for entering it later on Prolific.co: <b>PROLIFIC_COMPLETION_CODE</b>
+                  </p>
+                  <p>
+                    Was anything unclear? 
+                    Did you encounter technical difficulties? 
+                    Please drop us a message!
+                  </p>
+                  <p>
+                    Please continue to submit the results. You will be then redirected to prolific.co.
+                  </p>`,
                 ]
                 : [
-                  `<p>${correctResponsesTutorial}/${numberOfTrialsTutorial} der Antworten waren korrekt. 
-                  Sie benötigen mindestens ${correctResponsesLimitTutorial} korrekte Antworten um mit dem Experiment fortzufahren. 
-                  Bitte versuchen Sie es zu einem späteren Zeitpunkt nochmal. 
-                  Haben Sie Verständnisfragen? 
-                  Hatten Sie technische Schwierigkeiten? 
-                  Dann wenden Sie sich bitte an die Versuchsleitung: ngoc.chi.banh@uni-paderborn.de</p>`,
+                  `<p>
+                    Vielen Dank für Ihre Teilnahme.<br>
+                    ${correctResponsesTutorial}/${numberOfTrialsTutorial} der Antworten waren korrekt. 
+                    Sie benötigen mindestens ${correctResponsesLimitTutorial} korrekte Antworten um mit dem Experiment fortzufahren.
+                  </p> 
+                  <p>
+                    Leider haben Sie das Tutorial nicht bestanden. 
+                    Bitte notieren Sie sich den completion code, um ihn später bei Prolific.co einzugeben: <b>PROLIFIC_COMPLETION_CODE</b>
+                  </p>
+                  <p>
+                    Haben Sie Verständnisfragen? 
+                    Hatten Sie technische Schwierigkeiten? 
+                    Wenden Sie sich in diesem Fall bitte an die Versuchsleitung.
+                  </p>
+                  <p>
+                    Fahren Sie bitte fort, um die Resultate abzusenden. Sie werden anschließend zu prolific.co weitergeleitet.
+                  </p>`,
                 ],
             choices: () =>
               globalProps.instructionLanguage === "en"
@@ -761,19 +783,42 @@ export async function run({ assetPaths }) {
             stimulus: () =>
               globalProps.instructionLanguage === "en"
                 ? [
-                  `<p>${correctResponsesTutorial} of ${numberOfTrialsRepeatedTutorial} responses were correct. 
-                  You need at least ${correctResponsesLimitRepeatedTutorial} correct responses to go on with the experiment. 
-                  Please try again later. 
-                  Do you have any comprehension questions? 
-                  Did you encounter technical issues? 
-                  Then please refer to the study conductor: ngoc.chi.banh@uni-paderborn.de</p>`,
+                  `<p>
+                  Thank you for participating.<br>
+                  ${correctResponsesTutorial} of ${numberOfTrialsRepeatedTutorial} responses were correct. 
+                  You need at least ${correctResponsesLimitRepeatedTutorial} correct responses to go on with the experiment.
+                </p>
+                <p>
+                  Unfortunately, you did not pass the tutorial. 
+                  Please note your completion code for entering it later on Prolific.co: <b>PROLIFIC_COMPLETION_CODE</b>
+                </p>
+                <p>
+                  Was anything unclear? 
+                  Did you encounter technical difficulties? 
+                  Please drop us a message!
+                </p>
+                <p>
+                  Please continue to submit the results. You will be then redirected to prolific.co.
+                </p>`,
                 ]
                 : [
-                  `<p>${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial} der Antworten waren korrekt. 
-                  Sie benötigen mindestens ${correctResponsesLimitRepeatedTutorial} korrekte Antworten um mit dem Experiment fortzufahren. 
-                  Bitte versuchen Sie es zu einem späteren Zeitpunkt nochmal. 
-                  Haben Sie Verständnisfragen? Hatten Sie technische Schwierigkeiten? 
-                  Dann wenden Sie sich bitte an die Versuchsleitung: ngoc.chi.banh@uni-paderborn.de</p>`,
+                  `<p>
+                    Vielen Dank für Ihre Teilnahme.<br>
+                    ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial} der Antworten waren korrekt. 
+                    Sie benötigen mindestens ${correctResponsesLimitRepeatedTutorial} korrekte Antworten um mit dem Experiment fortzufahren.
+                  </p> 
+                  <p>
+                    Leider haben Sie das Tutorial nicht bestanden. 
+                    Bitte notieren Sie sich den completion code, um ihn später bei Prolific.co einzugeben: <b>PROLIFIC_COMPLETION_CODE</b>
+                  </p>
+                  <p>
+                    Haben Sie Verständnisfragen? 
+                    Hatten Sie technische Schwierigkeiten? 
+                    Wenden Sie sich in diesem Fall bitte an die Versuchsleitung.
+                  </p>
+                  <p>
+                    Fahren Sie bitte fort, um die Resultate abzusenden. Sie werden anschließend zu prolific.co weitergeleitet.
+                  </p>`,
                 ],
             choices: () =>
               globalProps.instructionLanguage === "en"
@@ -962,10 +1007,10 @@ export async function run({ assetPaths }) {
       if (IS_A_PROLIFIC_STUDY) {
         return globalProps.instructionLanguage === "en"
           ? [
-            "<p>Thank you for participating. Continue to submit the results. You will be redirected to prolific.co.</p>",
+            "<p>Thank you for participating.</p><p>Please note your completion code for entering it later on Prolific.co: <b>PROLIFIC_COMPLETION_CODE</b> Please continue to submit the results. You will be then redirected to prolific.co.</p>",
           ]
           : [
-            "<p>Vielen Dank für Ihre Teilnahme!</p><p>Fahren Sie fort, um die Resultate abzusenden. Sie werden anschließend zu prolific.co weitergeleitet.</p>",
+            "<p>Vielen Dank für Ihre Teilnahme.</p><p>Bitte notieren Sie sich den completion code, um ihn später bei Prolific.co einzugeben: <b>PROLIFIC_COMPLETION_CODE</b>. Fahren Sie bitte fort, um die Resultate abzusenden. Sie werden anschließend zu prolific.co weitergeleitet.</p>",
           ];
       } else {
         return globalProps.instructionLanguage === "en"
