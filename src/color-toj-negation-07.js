@@ -342,7 +342,7 @@ export async function run({ assetPaths }) {
     soa: soaChoicesTutorial,
   };
   const factorsDebug = {
-    isInstructionNegated: [false],
+    isInstructionNegated: [true, false],
     probeLeft: [true, false],
     soa: [-6, 6].map((x) => (x * 16.6667).toFixed(3)),
   };
@@ -358,7 +358,7 @@ export async function run({ assetPaths }) {
   if (debugmode) {
     trialsNegated = jsPsych.randomization.factorial(factorsNegated, 1);
     trialsAsserted = jsPsych.randomization.factorial(factorsAsserted, 1);
-    trials = jsPsych.randomization.factorial(factorsDebug, 1);
+    trials = jsPsych.randomization.factorial(factorsDebug, 3);
   }
 
   trialsNegated = jsPsych.randomization.shuffle(trialsNegated);
