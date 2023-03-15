@@ -185,46 +185,6 @@ export async function run({ assetPaths }) {
     },
   });
 
-  timeline.push({
-    type: CallFunctionPlugin,
-    func: function () {
-      let prolific_participant_id;
-      let prolific_study_id;
-      let prolific_session_id;
-      let participantCodeMD5;
-
-      if (typeof jatos !== "undefined") {
-        prolific_participant_id = jatos.urlQueryParameters.PROLIFIC_PID;
-        prolific_study_id = jatos.urlQueryParameters.STUDY_ID;
-        prolific_session_id = jatos.urlQueryParameters.SESSION_ID;
-        participantCodeMD5 = md5(participantCode);
-
-        jsPsych.data.addProperties({
-          prolific_participant_id: prolific_participant_id,
-          prolific_study_id: prolific_study_id,
-          prolific_session_id: prolific_session_id,
-          participantCodeMD5: participantCodeMD5,
-        });
-      }
-
-      if (debugmode) {
-        if (typeof jatos == "undefined") {
-          console.warn(`Apparently, the experiment is not running on JATOS. URL parameters will be ignored and will be undefined.`);
-        }
-        console.log(`prolific_participant_id: ${prolific_participant_id}`);
-        console.log(`prolific_study_id: ${prolific_study_id}`);
-        console.log(`prolific_session_id: ${prolific_session_id}`);
-        console.log(`participantCodeMD5: ${participantCodeMD5}`);
-      }
-    },
-  });
-
-  jsPsych.data.addProperties({
-    is_a_prolific_study: IS_A_PROLIFIC_STUDY,
-    is_starting_questionnaire_enabled: IS_STARTING_QUESTIONNAIRE_ENABLED,
-    is_final_questionnaire_enabled: IS_FINAL_QUESTIONNAIRE_ENABLED,
-  });
-
   var showInstructions = function (jspsych) {
 
     // get MD5 hash of the participant code and use the last hex number of the hash to assign the participant to a treatment group
@@ -235,19 +195,21 @@ export async function run({ assetPaths }) {
     let isAssertedFirst = treatmentGroupNumber % 2 === 1;
     let isAnswerKeySwitchEnabled = parseInt(treatmentGroupNumber / 2) === 1;
 
-    Object.assign(globalProps, { treatmentGroupNumber: treatmentGroupNumber });
-    jspsych.data.addProperties({ treatmentGroupNumber: treatmentGroupNumber });
-    Object.assign(globalProps, { isAnswerKeySwitchEnabled: isAnswerKeySwitchEnabled });
-    jspsych.data.addProperties({ isAnswerKeySwitchEnabled: isAnswerKeySwitchEnabled });
-    Object.assign(globalProps, { isAssertedFirst: isAssertedFirst });
-    jspsych.data.addProperties({ isAssertedFirst: isAssertedFirst });
+    let newProps = {
+      treatmentGroupNumber: treatmentGroupNumber,
+      isAnswerKeySwitchEnabled: isAnswerKeySwitchEnabled,
+      isAssertedFirst: isAssertedFirst
+    }
+    Object.assign(globalProps, newProps);
+    jspsych.data.addProperties(newProps);
 
     if (debugmode) {
-      console.log(`participantID=${globalProps.participantCode}`);
-      console.log('participantCodeMD5=' + globalProps.participantCodeMD5);
-      console.log('treatmentGroupNumber=' + globalProps.treatmentGroupNumber);
-      console.log(`isAnswerKeySwitchEnabled=${globalProps.isAnswerKeySwitchEnabled}`);
-      console.log(`isAssertedFirst=${globalProps.isAssertedFirst}`);
+      console.log(`jsPsych.data.participantCode=${jsPsych.data.get().trials[0].participantCode}`);
+      console.log(`jsPsych.data.participantCodeMD5= + ${jsPsych.data.get().trials[0].participantCodeMD5}`);
+      console.log(`jsPsych.data.treatmentGroupNumber= + ${jsPsych.data.get().trials[0].treatmentGroupNumber}`);
+      console.log(`jsPsych.data.isAnswerKeySwitchEnabled=${jsPsych.data.get().trials[0].isAnswerKeySwitchEnabled}`);
+      console.log(`jsPsych.data.isAssertedFirst=${jsPsych.data.get().trials[0].isAssertedFirst}`);
+
     }
 
     let instructionsWithoutKeySwitch = {
@@ -349,11 +311,19 @@ export async function run({ assetPaths }) {
     instructions: () => showInstructions(jsPsych),
     isAProlificStudy: IS_A_PROLIFIC_STUDY,
     isStartingQuestionnaireEnabled: IS_STARTING_QUESTIONNAIRE_ENABLED,
+    debugmode: debugmode,
   });
 
-  if (debugmode) {
-    console.log(`participantCode: ${globalProps.participantCode}`);
-  }
+
+  timeline.push({
+    type: CallFunctionPlugin,
+    func: function () {
+      if (debugmode) {
+        console.log(`participant_code: ${jsPsych.data.get().trials[0].participantCode}`);
+        console.log(`participantCodeMD5: ${jsPsych.data.get().trials[0].participantCodeMD5}`);
+      }
+    },
+  });
 
   // Generate trials
   const factorsNegated = {
