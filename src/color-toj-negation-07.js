@@ -266,7 +266,7 @@ export async function run({ assetPaths }) {
  Versuchen Sie genau zu sein und keine Fehler zu machen.
  Wenn Sie nicht wissen, welcher Streifen zuerst blinkte, raten Sie.
  
- Ein Beispiel: Wenn die Stimme „nicht grün“ ansagt, müssen Sie den roten Streifen beurteilen. Im Beispielbild oben blinkte er als Erster, d.h. vor dem grünen Streifen. Das Tippen der **Q**-Taste oder auf die linke Bildschirmhälfte ist dann korrekt.
+ Ein Beispiel: Wenn die Stimme „nicht grün“ ansagt, müssen Sie den roten Streifen beurteilen. Im Beispielbild oben blinkte er als Erster, d.h. vor dem grünen Streifen. Das Tippen der **Q**-Taste oder auf die **linke** Bildschirmhälfte ist dann korrekt.
  Würde der rote Streifen nach dem grünen blinken, so wäre die **P**-Taste bzw. das Antippen der **rechten** Bildschirmhälfte korrekt.`,
     };
 
