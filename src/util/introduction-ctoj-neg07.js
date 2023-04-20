@@ -16,6 +16,7 @@ import SurveyMultiChoicePlugin from "@jspsych/plugin-survey-multi-choice";
 import SurveyTextPlugin from "@jspsych/plugin-survey-text";
 import HtmlButtonResponsePlugin from "@jspsych/plugin-html-button-response";
 import FullscreenPlugin from "@jspsych/plugin-fullscreen";
+import CallFunctionPlugin from "@jspsych/plugin-call-function";
 
 marked.setOptions({ breaks: true });
 
@@ -44,6 +45,8 @@ marked.setOptions({ breaks: true });
  *     en: string;
  *   };
  *   isAProlificStudy: boolean;
+ *   isStartingQuestionnaireEnabled: boolean;
+ *   debugmode: boolean;
  * }} options
  *
  * @returns {{
@@ -65,6 +68,29 @@ export function addIntroduction(jspsych, timeline, options) {
   }
 
   const globalProps = {};
+
+  timeline.push({
+    type: CallFunctionPlugin,
+    func: function () {
+      if (typeof jatos === "undefined") {
+        console.warn(`Apparently, the experiment is not running on JATOS. Please double-check whether URL parameters are correctly read via JATOS API and whether they are undefined.`);
+      } else {
+        let newProps = {
+          prolific_participant_id: jatos.urlQueryParameters.PROLIFIC_PID,
+          prolific_study_id: jatos.urlQueryParameters.STUDY_ID,
+          prolific_session_id: jatos.urlQueryParameters.SESSION_ID,
+        };
+
+        jspsych.data.addProperties(newProps);
+        Object.assign(globalProps, newProps);
+        if (options.debugmode) {
+          console.log(`jspsych.data.get().trials[0].prolific_participant_id: ${jspsych.data.get().trials[0].prolific_participant_id}`);
+          console.log(`jspsych.data.get().trials[0].prolific_study_id: ${jspsych.data.get().trials[0].prolific_study_id}`);
+          console.log(`jspsych.data.get().trials[0].prolific_session_id: ${jspsych.data.get().trials[0].prolific_session_id}`);
+        }
+      }
+    },
+  });
 
   // language selection
   // standalone version: ask for language and whether the user is a returning participant
@@ -123,16 +149,27 @@ export function addIntroduction(jspsych, timeline, options) {
       },
       on_finish: (trial) => {
         const responses = trial.response;
-        const queryString = window.location.search;
-        const urlParams = new URLSearchParams(queryString);
-        let participant_code = urlParams.get("PROLIFIC_PID");
+        let participant_code;
+
+        if (typeof jatos === "undefined") {
+          const urlParams = new URLSearchParams(window.location.search);
+          participant_code = urlParams.get("PROLIFIC_PID");
+        } else {
+          participant_code = jatos.urlQueryParameters.PROLIFIC_PID;
+        }
+
         if (participant_code === null) {
-          console.warn("PROLIFIC_PID is null. Set PROLIFIC_PID to `42`.")
+          console.warn("PROLIFIC_PID is null. Set PROLIFIC_PID to `42`.");
           participant_code = "42";
+        } else {
+          console.log(`participant_code: ${participant_code}`)
         }
         const newProps = {
+          isFirstParticipation: options.isStartingQuestionnaireEnabled,
           instructionLanguage: responses["participant_language"] === "Deutsch" ? "de" : "en",
-          participantCodeMD5: md5(participant_code)
+          participantCodeMD5: md5(participant_code),
+          participantCode: participant_code,
+
         };
         Object.assign(globalProps, newProps);
         jspsych.data.addProperties(newProps);

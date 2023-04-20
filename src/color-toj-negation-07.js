@@ -8,7 +8,7 @@
  * - Adjusted declaration of consent
  * - Better instructions (with images) and a better example TOJ
  
- * @version 1.0
+ * @version 1.1-prolific-p1
  * @imageDir images/common
  * @audioDir audio/color-toj-negation,audio/feedback
  * @miscDir misc
@@ -46,10 +46,10 @@ const soaChoices = [-6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6].map((x) => (x * 16.666
 const soaChoicesTutorial = [-6, -3, 3, 6].map((x) => (x * 16.6667).toFixed(3));
 
 const debugmode = false;
-const IS_A_PROLIFIC_STUDY = false;
+const IS_A_PROLIFIC_STUDY = true;
 
 // is only relevant if IS_A_PROLIFIC_STUDY evaluates to true
-const IS_STARTING_QUESTIONNAIRE_ENABLED = false;
+const IS_STARTING_QUESTIONNAIRE_ENABLED = true;
 const IS_FINAL_QUESTIONNAIRE_ENABLED = false;
 
 class TojTarget {
@@ -185,39 +185,6 @@ export async function run({ assetPaths }) {
     },
   });
 
-  timeline.push({
-    type: CallFunctionPlugin,
-    func: function () {
-      let prolific_participant_id;
-      let prolific_study_id;
-      let prolific_session_id;
-
-      if (typeof jatos !== "undefined") {
-        prolific_participant_id = jatos.urlQueryParameters.PROLIFIC_PID;
-        prolific_study_id = jatos.urlQueryParameters.STUDY_ID;
-        prolific_session_id = jatos.urlQueryParameters.SESSION_ID;
-
-        jsPsych.data.addProperties({
-          prolific_participant_id: prolific_participant_id,
-          prolific_study_id: prolific_study_id,
-          prolific_session_id: prolific_session_id,
-        });
-      }
-
-      if (debugmode) {
-        console.log(`prolific_participant_id: ${prolific_participant_id}`);
-        console.log(`prolific_study_id: ${prolific_study_id}`);
-        console.log(`prolific_session_id: ${prolific_session_id}`);
-      }
-    },
-  });
-
-  jsPsych.data.addProperties({
-    is_a_prolific_study: IS_A_PROLIFIC_STUDY,
-    is_starting_questionnaire_enabled: IS_STARTING_QUESTIONNAIRE_ENABLED,
-    is_final_questionnaire_enabled: IS_FINAL_QUESTIONNAIRE_ENABLED,
-  });
-
   var showInstructions = function (jspsych) {
 
     // get MD5 hash of the participant code and use the last hex number of the hash to assign the participant to a treatment group
@@ -228,19 +195,21 @@ export async function run({ assetPaths }) {
     let isAssertedFirst = treatmentGroupNumber % 2 === 1;
     let isAnswerKeySwitchEnabled = parseInt(treatmentGroupNumber / 2) === 1;
 
-    Object.assign(globalProps, { treatmentGroupNumber: treatmentGroupNumber });
-    jspsych.data.addProperties({ treatmentGroupNumber: treatmentGroupNumber });
-    Object.assign(globalProps, { isAnswerKeySwitchEnabled: isAnswerKeySwitchEnabled });
-    jspsych.data.addProperties({ isAnswerKeySwitchEnabled: isAnswerKeySwitchEnabled });
-    Object.assign(globalProps, { isAssertedFirst: isAssertedFirst });
-    jspsych.data.addProperties({ isAssertedFirst: isAssertedFirst });
+    let newProps = {
+      treatmentGroupNumber: treatmentGroupNumber,
+      isAnswerKeySwitchEnabled: isAnswerKeySwitchEnabled,
+      isAssertedFirst: isAssertedFirst
+    }
+    Object.assign(globalProps, newProps);
+    jspsych.data.addProperties(newProps);
 
     if (debugmode) {
-      console.log(`participantID=${globalProps.participantCode}`);
-      console.log('participantCodeMD5=' + globalProps.participantCodeMD5);
-      console.log('treatmentGroupNumber=' + globalProps.treatmentGroupNumber);
-      console.log(`isAnswerKeySwitchEnabled=${globalProps.isAnswerKeySwitchEnabled}`);
-      console.log(`isAssertedFirst=${globalProps.isAssertedFirst}`);
+      console.log(`jsPsych.data.participantCode=${jsPsych.data.get().trials[0].participantCode}`);
+      console.log(`jsPsych.data.participantCodeMD5= + ${jsPsych.data.get().trials[0].participantCodeMD5}`);
+      console.log(`jsPsych.data.treatmentGroupNumber= + ${jsPsych.data.get().trials[0].treatmentGroupNumber}`);
+      console.log(`jsPsych.data.isAnswerKeySwitchEnabled=${jsPsych.data.get().trials[0].isAnswerKeySwitchEnabled}`);
+      console.log(`jsPsych.data.isAssertedFirst=${jsPsych.data.get().trials[0].isAssertedFirst}`);
+
     }
 
     let instructionsWithoutKeySwitch = {
@@ -259,7 +228,7 @@ export async function run({ assetPaths }) {
  Versuchen Sie genau zu sein und keine Fehler zu machen.
  Wenn Sie nicht wissen, welcher Streifen zuerst blinkte, raten Sie.
  
- Ein Beispiel: Wenn die Stimme „nicht grün“ ansagt, müssen Sie den roten Streifen beurteilen. Im Beispielbild oben blinkte er als Erster, d.h. vor dem grünen Streifen. Das Tippen der **Q**-Taste oder auf die linke Bildschirmhälfte ist dann korrekt.
+ Ein Beispiel: Wenn die Stimme „nicht grün“ ansagt, müssen Sie den roten Streifen beurteilen. Im Beispielbild oben blinkte er als Erster, d.h. vor dem grünen Streifen. Das Tippen der **Q**-Taste oder auf die **linke** Bildschirmhälfte ist dann korrekt.
  Würde der rote Streifen nach dem grünen blinken, so wäre die **P**-Taste bzw. das Antippen der **rechten** Bildschirmhälfte korrekt.`,
     };
 
@@ -342,11 +311,19 @@ export async function run({ assetPaths }) {
     instructions: () => showInstructions(jsPsych),
     isAProlificStudy: IS_A_PROLIFIC_STUDY,
     isStartingQuestionnaireEnabled: IS_STARTING_QUESTIONNAIRE_ENABLED,
+    debugmode: debugmode,
   });
 
-  if (debugmode) {
-    console.log(`participantCode: ${globalProps.participantCode}`);
-  }
+
+  timeline.push({
+    type: CallFunctionPlugin,
+    func: function () {
+      if (debugmode) {
+        console.log(`participant_code: ${jsPsych.data.get().trials[0].participantCode}`);
+        console.log(`participantCodeMD5: ${jsPsych.data.get().trials[0].participantCodeMD5}`);
+      }
+    },
+  });
 
   // Generate trials
   const factorsNegated = {
@@ -365,7 +342,7 @@ export async function run({ assetPaths }) {
     soa: soaChoicesTutorial,
   };
   const factorsDebug = {
-    isInstructionNegated: [false],
+    isInstructionNegated: [true, false],
     probeLeft: [true, false],
     soa: [-6, 6].map((x) => (x * 16.6667).toFixed(3)),
   };
@@ -381,7 +358,7 @@ export async function run({ assetPaths }) {
   if (debugmode) {
     trialsNegated = jsPsych.randomization.factorial(factorsNegated, 1);
     trialsAsserted = jsPsych.randomization.factorial(factorsAsserted, 1);
-    trials = jsPsych.randomization.factorial(factorsDebug, 1);
+    trials = jsPsych.randomization.factorial(factorsDebug, 3);
   }
 
   trialsNegated = jsPsych.randomization.shuffle(trialsNegated);
@@ -707,20 +684,42 @@ export async function run({ assetPaths }) {
             stimulus: () =>
               globalProps.instructionLanguage === "en"
                 ? [
-                  `<p>${correctResponsesTutorial} of ${numberOfTrialsTutorial} responses were correct. 
-                  You need at least ${correctResponsesLimitTutorial} correct responses to go on with the experiment. 
-                  Please try again later. 
-                  Do you have any comprehension questions? 
-                  Did you encounter technical issues? 
-                  Then please refer to the study conductor: ngoc.chi.banh@uni-paderborn.de</p>`,
+                  `<p>
+                    Thank you for participating.<br>
+                    ${correctResponsesTutorial} of ${numberOfTrialsTutorial} responses were correct. 
+                    You need at least ${correctResponsesLimitTutorial} correct responses to go on with the experiment.
+                  </p>
+                  <p>
+                    Unfortunately, you did not pass the tutorial. 
+                    Please note your completion code for entering it later on Prolific.co: <b>PROLIFIC_COMPLETION_CODE</b>
+                  </p>
+                  <p>
+                    Was anything unclear? 
+                    Did you encounter technical difficulties? 
+                    Please drop us a message!
+                  </p>
+                  <p>
+                    Please continue to submit the results. You will be then redirected to prolific.co.
+                  </p>`,
                 ]
                 : [
-                  `<p>${correctResponsesTutorial}/${numberOfTrialsTutorial} der Antworten waren korrekt. 
-                  Sie benötigen mindestens ${correctResponsesLimitTutorial} korrekte Antworten um mit dem Experiment fortzufahren. 
-                  Bitte versuchen Sie es zu einem späteren Zeitpunkt nochmal. 
-                  Haben Sie Verständnisfragen? 
-                  Hatten Sie technische Schwierigkeiten? 
-                  Dann wenden Sie sich bitte an die Versuchsleitung: ngoc.chi.banh@uni-paderborn.de</p>`,
+                  `<p>
+                    Vielen Dank für Ihre Teilnahme.<br>
+                    ${correctResponsesTutorial}/${numberOfTrialsTutorial} der Antworten waren korrekt. 
+                    Sie benötigen mindestens ${correctResponsesLimitTutorial} korrekte Antworten um mit dem Experiment fortzufahren.
+                  </p> 
+                  <p>
+                    Leider haben Sie das Tutorial nicht bestanden. 
+                    Bitte notieren Sie sich den completion code, um ihn später bei Prolific.co einzugeben: <b>PROLIFIC_COMPLETION_CODE</b>
+                  </p>
+                  <p>
+                    Haben Sie Verständnisfragen? 
+                    Hatten Sie technische Schwierigkeiten? 
+                    Wenden Sie sich in diesem Fall bitte an die Versuchsleitung.
+                  </p>
+                  <p>
+                    Fahren Sie bitte fort, um die Resultate abzusenden. Sie werden anschließend zu prolific.co weitergeleitet.
+                  </p>`,
                 ],
             choices: () =>
               globalProps.instructionLanguage === "en"
@@ -754,19 +753,42 @@ export async function run({ assetPaths }) {
             stimulus: () =>
               globalProps.instructionLanguage === "en"
                 ? [
-                  `<p>${correctResponsesTutorial} of ${numberOfTrialsRepeatedTutorial} responses were correct. 
-                  You need at least ${correctResponsesLimitRepeatedTutorial} correct responses to go on with the experiment. 
-                  Please try again later. 
-                  Do you have any comprehension questions? 
-                  Did you encounter technical issues? 
-                  Then please refer to the study conductor: ngoc.chi.banh@uni-paderborn.de</p>`,
+                  `<p>
+                  Thank you for participating.<br>
+                  ${correctResponsesTutorial} of ${numberOfTrialsRepeatedTutorial} responses were correct. 
+                  You need at least ${correctResponsesLimitRepeatedTutorial} correct responses to go on with the experiment.
+                </p>
+                <p>
+                  Unfortunately, you did not pass the tutorial. 
+                  Please note your completion code for entering it later on Prolific.co: <b>PROLIFIC_COMPLETION_CODE</b>
+                </p>
+                <p>
+                  Was anything unclear? 
+                  Did you encounter technical difficulties? 
+                  Please drop us a message!
+                </p>
+                <p>
+                  Please continue to submit the results. You will be then redirected to prolific.co.
+                </p>`,
                 ]
                 : [
-                  `<p>${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial} der Antworten waren korrekt. 
-                  Sie benötigen mindestens ${correctResponsesLimitRepeatedTutorial} korrekte Antworten um mit dem Experiment fortzufahren. 
-                  Bitte versuchen Sie es zu einem späteren Zeitpunkt nochmal. 
-                  Haben Sie Verständnisfragen? Hatten Sie technische Schwierigkeiten? 
-                  Dann wenden Sie sich bitte an die Versuchsleitung: ngoc.chi.banh@uni-paderborn.de</p>`,
+                  `<p>
+                    Vielen Dank für Ihre Teilnahme.<br>
+                    ${correctResponsesTutorial}/${numberOfTrialsRepeatedTutorial} der Antworten waren korrekt. 
+                    Sie benötigen mindestens ${correctResponsesLimitRepeatedTutorial} korrekte Antworten um mit dem Experiment fortzufahren.
+                  </p> 
+                  <p>
+                    Leider haben Sie das Tutorial nicht bestanden. 
+                    Bitte notieren Sie sich den completion code, um ihn später bei Prolific.co einzugeben: <b>PROLIFIC_COMPLETION_CODE</b>
+                  </p>
+                  <p>
+                    Haben Sie Verständnisfragen? 
+                    Hatten Sie technische Schwierigkeiten? 
+                    Wenden Sie sich in diesem Fall bitte an die Versuchsleitung.
+                  </p>
+                  <p>
+                    Fahren Sie bitte fort, um die Resultate abzusenden. Sie werden anschließend zu prolific.co weitergeleitet.
+                  </p>`,
                 ],
             choices: () =>
               globalProps.instructionLanguage === "en"
@@ -955,10 +977,10 @@ export async function run({ assetPaths }) {
       if (IS_A_PROLIFIC_STUDY) {
         return globalProps.instructionLanguage === "en"
           ? [
-            "<p>Thank you for participating. Continue to submit the results. You will be redirected to prolific.co.</p>",
+            "<p>Thank you for participating.</p><p>Please note your completion code for entering it later on Prolific.co: <b>PROLIFIC_COMPLETION_CODE</b> Please continue to submit the results. You will be then redirected to prolific.co.</p>",
           ]
           : [
-            "<p>Vielen Dank für Ihre Teilnahme!</p><p>Fahren Sie fort, um die Resultate abzusenden. Sie werden anschließend zu prolific.co weitergeleitet.</p>",
+            "<p>Vielen Dank für Ihre Teilnahme.</p><p>Bitte notieren Sie sich den completion code, um ihn später bei Prolific.co einzugeben: <b>PROLIFIC_COMPLETION_CODE</b>. Fahren Sie bitte fort, um die Resultate abzusenden. Sie werden anschließend zu prolific.co weitergeleitet.</p>",
           ];
       } else {
         return globalProps.instructionLanguage === "en"
