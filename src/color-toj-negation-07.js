@@ -7,8 +7,8 @@
  * - Adjusted concluding survey to the task; survey also asks for general remarks. 
  * - Adjusted declaration of consent
  * - Better instructions (with images) and a better example TOJ
- 
- * @version 1.1-prolific-p1
+ * - verbal instructions are in German language only
+ * @version 1.2-prolific-p1
  * @imageDir images/common
  * @audioDir audio/color-toj-negation,audio/feedback
  * @miscDir misc

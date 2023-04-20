@@ -59,7 +59,7 @@ marked.setOptions({ breaks: true });
 export function addIntroduction(jspsych, timeline, options) {
   if (options.skip) {
     return {
-      instructionLanguage: "en",
+      instructionLanguage: "de",
       isFirstParticipation: false,
       isLastParticipation: false,
       participantCode: "ABCD",
@@ -97,18 +97,12 @@ export function addIntroduction(jspsych, timeline, options) {
   if (!options.isAProlificStudy) {
     timeline.push({
       type: SurveyMultiChoicePlugin,
-      preamble: `<p>Welcome to the ${options.experimentName} experiment!</p>`,
+      preamble: `<p>Willkommen zum Experiment ${options.experimentName}!</p>`,
       questions: [
         {
           name: "is_new_participant",
-          prompt: `Is this the first time you participate in this experiment?`,
-          options: ["Yes, I have not completed a session, yet.", "No, I am a returning participant and have already completed one session."],
-          required: true,
-        },
-        {
-          name: "participant_language",
-          prompt: `Most parts of this experiment are available in multiple languages. Please select a language.`,
-          options: ["Deutsch", "English"],
+          prompt: `Haben Sie bereits eine vollständige Sitzung (Tutorial <strong>und</strong> Experiment) des Experiments <strong>${options.experimentName}</strong> abgeschlossen?`,
+          options: ["Nein, ich bin neu hier oder ich wiederhole das Tutorial.", "Ja, ich habe bereits eine vollständige Sitzung (Tutorial <em>und</em> Experiment) abgeschlossen."],
           required: true,
         },
       ],
@@ -119,8 +113,8 @@ export function addIntroduction(jspsych, timeline, options) {
       on_finish: (trial) => {
         const responses = trial.response;
         const newProps = {
-          isFirstParticipation: responses['is_new_participant'].includes("Yes"),
-          instructionLanguage: responses["participant_language"] === "Deutsch" ? "de" : "en",
+          isFirstParticipation: responses['is_new_participant'].includes("Nein"),
+          instructionLanguage: "de",
         };
         Object.assign(globalProps, newProps);
         jspsych.data.addProperties(newProps);
@@ -134,14 +128,8 @@ export function addIntroduction(jspsych, timeline, options) {
   else {
     timeline.push({
       type: SurveyMultiChoicePlugin,
-      preamble: `<p>Welcome to the ${options.experimentName} experiment!</p>`,
+      preamble: `<p>Willkommen zum Experiment ${options.experimentName}!</p>`,
       questions: [
-        {
-          name: "participant_language",
-          prompt: `Most parts of this experiment are available in multiple languages. Please select a language.`,
-          options: ["Deutsch", "English"],
-          required: true,
-        },
       ],
       on_start: async (trial) => {
         const rate = await estimateVsync();
@@ -166,7 +154,7 @@ export function addIntroduction(jspsych, timeline, options) {
         }
         const newProps = {
           isFirstParticipation: options.isStartingQuestionnaireEnabled,
-          instructionLanguage: responses["participant_language"] === "Deutsch" ? "de" : "en",
+          instructionLanguage: "de",
           participantCodeMD5: md5(participant_code),
           participantCode: participant_code,
 
@@ -199,12 +187,12 @@ export function addIntroduction(jspsych, timeline, options) {
           if (globalProps.instructionLanguage === "en") {
             return (
               `<p>Your participant code is <b>${participantCode}</b>.` +
-              "</p><p><b>Important:</b> Please make sure to write it down somewhere. You will need it if you will do the second session or multiple sessions and for claiming your course credit!"
+              "</p><p><b>Important:</b> Please make sure to write it down somewhere. You will need it if you will do the second session or multiple sessions and for claiming your course credit! If you are repeating your first session (e.g. because you did not succeed in the tutorial), please discard the old code and keep above code instead.</p>"
             );
           } else {
             return (
               `<p>Ihr Teilnahme-Code ist <b>${participantCode}</b>.` +
-              "</p><p><b>Wichtig:</b> Bitte vergessen Sie nicht, sich Ihren Code aufzuschreiben! Sie benötigen ihn, um die zweite Sitzung und ggf. weitere Sitzungen zu machen und Ihre Versuchspersonenstunden gutgeschrieben zu bekommen!"
+              "</p><p><b>Wichtig:</b> Bitte vergessen Sie nicht, sich Ihren Code aufzuschreiben! Sie benötigen ihn, um die zweite Sitzung und ggf. weitere Sitzungen zu machen und Ihre Versuchspersonenstunden gutgeschrieben zu bekommen! Falls Sie die erste Sitzung wiederholen (z.B. weil Sie das Tutorial nicht erfolgreich abschließen konnten), verwerfen Sie bitte den alten Code und notieren Sie sich obigen Code stattdessen.</p>"
             );
           }
         },
@@ -398,7 +386,7 @@ export function addIntroduction(jspsych, timeline, options) {
         type: SurveyTextPlugin,
         questions: [{
           name: "participant_age",
-          prompt: "Please enter your age.",
+          prompt: "Bitte geben Sie Ihr Alter ein.",
           required: true
         }],
       },
